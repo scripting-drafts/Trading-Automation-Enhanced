@@ -418,6 +418,9 @@ def telegram_main():
     application.add_handler(CommandHandler('start', start_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, telegram_handle_message))
 
+    # Add periodic alarm job (every 5 minutes)
+    application.job_queue.run_repeating(alarm_job, interval=300, first=10)
+
     application.run_polling()
 
 
@@ -1174,6 +1177,34 @@ def resume_positions_from_binance():
         return resumed
     except Exception:
         return {}
+
+async def send_alarm_message(text):
+    """Send an alarm message to the Telegram chat."""
+    from telegram import Bot
+    bot = Bot(token=TELEGRAM_TOKEN)
+    await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=text)
+
+def check_and_alarm_high_volume(context=None):
+    """Check all symbols for volume > MIN_VOLUME and send Telegram alarm if found."""
+    stats = load_symbol_stats()
+    if not stats:
+        return
+    alarmed = []
+    for symbol, s in stats.items():
+        vol = s.get("volume_1d", 0) or 0
+        if vol > MIN_VOLUME:
+            alarmed.append((symbol, vol))
+    if alarmed:
+        msg = "🚨 High Volume Alert:\n"
+        for symbol, vol in alarmed:
+            msg += f"- {symbol}: Volume = {vol:,.0f}\n"
+        # Use asyncio to send alarm
+        import asyncio
+        asyncio.run(send_alarm_message(msg))
+
+# --- Telegram alarm job setup ---
+async def alarm_job(context: CallbackContext):
+    check_and_alarm_high_volume()
 
 if __name__ == "__main__":
     refresh_symbols()

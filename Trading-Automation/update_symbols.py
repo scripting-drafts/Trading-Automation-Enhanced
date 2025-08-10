@@ -9,7 +9,7 @@ from secrets import API_KEY, API_SECRET  # Ensure you have a secrets.py file wit
 # API_SECRET = os.environ['BINANCE_SECRET']
 
 OUTPUT_FILE = "symbols.yaml"
-UPDATE_INTERVAL = 180
+UPDATE_INTERVAL = 60
 cg = CoinGeckoAPI()
 
 def fetch_with_retry(func, *args, retries=3, **kwargs):
