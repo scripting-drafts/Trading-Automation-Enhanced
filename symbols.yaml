@@ -1,32 +1,32 @@
 BTCUSDT:
-  market_cap: 13374022
+  market_cap: 13359709
   circulating_supply: 113.04256188
-  last_price: 118444.72
+  last_price: 118627.2
   volatility:
-    15m: 0.000525176176289569
-    1h: 0.00040466543794330246
-    1d: 0.0013374250844323183
-  volume_15m: 110.34134
-  volume_1h: 379.43718
-  volume_1d: 8852.062
+    15m: 0.0003820245993419496
+    1h: 0.00041387175276730943
+    1d: 0.0013371056842697863
+  volume_15m: 16.13428
+  volume_1h: 163.43835
+  volume_1d: 9028.70999
   arbitrage:
-    bid_ask_spread: 0.00999999999476131
-    top_bid: 118444.72
-    top_ask: 118444.73
-    order_book_depth: 6.04289
+    bid_ask_spread: 0.010000000009313226
+    top_bid: 118627.2
+    top_ask: 118627.21
+    order_book_depth: 11.78556
 ETHUSDT:
-  market_cap: 69460
+  market_cap: 69550
   circulating_supply: 999819501.739918
-  last_price: 4168.1
+  last_price: 4206.94
   volatility:
-    15m: 0.0008297871747153822
-    1h: 0.000739325018930009
-    1d: 0.002714050295131521
-  volume_15m: 3764.6595
-  volume_1h: 14452.6791
-  volume_1d: 343302.3651
+    15m: 0.0008012680593478019
+    1h: 0.0008731725827952974
+    1d: 0.0028015253809461015
+  volume_15m: 2223.718
+  volume_1h: 13233.8219
+  volume_1d: 356832.1368
   arbitrage:
     bid_ask_spread: 0.010000000000218279
-    top_bid: 4168.42
-    top_ask: 4168.43
-    order_book_depth: 91.9338
+    top_bid: 4208.3
+    top_ask: 4208.31
+    order_book_depth: 87.81360000000001
