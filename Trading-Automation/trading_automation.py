@@ -17,11 +17,11 @@ from telegram.ext import (
     JobQueue,
 )
 import apscheduler.util
-
-API_KEY = os.environ['BINANCE_KEY']
-API_SECRET = os.environ['BINANCE_SECRET']
-TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
-TELEGRAM_CHAT_ID = int(os.environ['TELEGRAM_CHAT_ID'])
+from secrets import API_KEY, API_SECRET, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+# API_KEY = os.environ['BINANCE_KEY']
+# API_SECRET = os.environ['BINANCE_SECRET']
+# TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
+# TELEGRAM_CHAT_ID = int(os.environ['TELEGRAM_CHAT_ID'])
 
 def patched_get_localzone():
     return pytz.UTC
