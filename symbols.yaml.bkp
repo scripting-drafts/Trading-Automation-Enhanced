@@ -1,0 +1,4708 @@
+ETHBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.02288
+  volatility:
+    15m: 0.00036222387732325143
+    1h: 0.0003934267135343052
+    1d: 0.001277974661092758
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 22.4904
+  volume_1h: 243.4989
+  volume_1d: 7855.2809
+  arbitrage:
+    bid_ask_spread: 9.999999999999593e-06
+    top_bid: 0.02288
+    top_ask: 0.02289
+    order_book_depth: 620.7687000000001
+  core: false
+LTCBTC:
+  market_cap: 6404361290
+  circulating_supply: 76026501.98347135
+  last_price: 0.000796
+  volatility:
+    15m: 0.000834427684821722
+    1h: 0.0008889442006105696
+    1d: 0.0021301498607997084
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 18.937
+  volume_1h: 99.76
+  volume_1d: 5982.292
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-06
+    top_bid: 0.000795
+    top_ask: 0.000796
+    order_book_depth: 3879.7619999999997
+  core: true
+BNBBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.006094
+  volatility:
+    15m: 0.00029928319903830945
+    1h: 0.0002188067061467197
+    1d: 0.0008878851131689672
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 4.3
+  volume_1h: 635.21
+  volume_1d: 5751.702
+  arbitrage:
+    bid_ask_spread: 1.0000000000001327e-06
+    top_bid: 0.006094
+    top_ask: 0.006095
+    order_book_depth: 79.62
+  core: false
+NEOBTC:
+  market_cap: 369357636
+  circulating_supply: 70530000.0
+  last_price: 4.94e-05
+  volatility:
+    15m: 0.0
+    1h: 0.000446719343748084
+    1d: 0.002230706805078189
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1216.81
+  volume_1d: 14414.52
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 4.93e-05
+    top_ask: 4.94e-05
+    order_book_depth: 6512.959999999999
+  core: false
+GASBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.48e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0024029065109672644
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 5911.1
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-08
+    top_bid: 2.48e-05
+    top_ask: 2.49e-05
+    order_book_depth: 7498.7
+  core: false
+LRCBTC:
+  market_cap: 89178180
+  circulating_supply: 1245991468.94246
+  last_price: 6.8e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.005222250416225533
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 505024.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 6.7e-07
+    top_ask: 6.8e-07
+    order_book_depth: 791435.0
+  core: false
+QTUMBTC:
+  market_cap: 199680133
+  circulating_supply: 105707718.5
+  last_price: 1.795e-05
+  volatility:
+    15m: 0.0
+    1h: 0.00016313041558030071
+    1d: 0.003275676230372463
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 3239.3
+  arbitrage:
+    bid_ask_spread: 7.999999999999923e-08
+    top_bid: 1.781e-05
+    top_ask: 1.789e-05
+    order_book_depth: 2076.7
+  core: false
+ZRXBTC:
+  market_cap: 177304339
+  circulating_supply: 848396562.906836
+  last_price: 1.97e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0011434905124102857
+    1d: 0.0031094538543335846
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 211.0
+  volume_1d: 43044.0
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 1.97e-06
+    top_ask: 1.99e-06
+    order_book_depth: 142560.0
+  core: false
+KNCBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.57e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0005046081820962174
+    1d: 0.003300986988412185
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 3507.1
+  volume_1d: 278310.9
+  arbitrage:
+    bid_ask_spread: 2.0000000000000232e-08
+    top_bid: 2.57e-06
+    top_ask: 2.59e-06
+    order_book_depth: 150640.0
+  core: false
+IOTABTC:
+  market_cap: 585905880
+  circulating_supply: 3866492557.0
+  last_price: 1.42e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0009104119649008788
+    1d: 0.003764091141812963
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 62767.0
+  volume_1d: 291948.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.42e-06
+    top_ask: 1.43e-06
+    order_book_depth: 897704.0
+  core: false
+LINKBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.0001218
+  volatility:
+    15m: 0.0005996451125647468
+    1h: 0.0005894105801282016
+    1d: 0.002214477243989935
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 81.16
+  volume_1h: 1416.72
+  volume_1d: 55161.05
+  arbitrage:
+    bid_ask_spread: 9.999999999998888e-08
+    top_bid: 0.0001218
+    top_ask: 0.0001219
+    order_book_depth: 10662.420000000002
+  core: false
+MTLBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.05e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0009708750974234236
+    1d: 0.002426155495525863
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 467.2
+  volume_1d: 18327.0
+  arbitrage:
+    bid_ask_spread: 2.999999999999971e-08
+    top_bid: 6.02e-06
+    top_ask: 6.05e-06
+    order_book_depth: 41237.4
+  core: false
+ETCBTC:
+  market_cap: 2443998859
+  circulating_supply: 152536159.2808319
+  last_price: 0.0001512
+  volatility:
+    15m: 0.0005894350698084405
+    1h: 0.00042416620156305907
+    1d: 0.0015568301181060843
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 100.51
+  volume_1h: 355.76
+  volume_1d: 7103.47
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 0.0001512
+    top_ask: 0.0001513
+    order_book_depth: 4202.9400000000005
+  core: false
+ZECBTC:
+  market_cap: 590985054
+  circulating_supply: 16143822.0405448
+  last_price: 0.0003462
+  volatility:
+    15m: 0.00030915123413815415
+    1h: 0.0008934375612109445
+    1d: 0.003272102474627909
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 25.661
+  volume_1h: 828.373
+  volume_1d: 2466.786
+  arbitrage:
+    bid_ask_spread: 6.000000000000146e-07
+    top_bid: 0.000346
+    top_ask: 0.0003466
+    order_book_depth: 193.90699999999995
+  core: false
+DASHBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.0001822
+  volatility:
+    15m: 0.0005346626079787086
+    1h: 0.0005614087453219721
+    1d: 0.0021109519845793337
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 2.444
+  volume_1h: 30.506
+  volume_1d: 1609.935
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 0.0001822
+    top_ask: 0.0001823
+    order_book_depth: 118.974
+  core: false
+REQBTC:
+  market_cap: 99132839
+  circulating_supply: 744291192.2591633
+  last_price: 1.26e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.002828423419193662
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 30967.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.25e-06
+    top_ask: 1.26e-06
+    order_book_depth: 152108.0
+  core: false
+TRXBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.64e-06
+  volatility:
+    15m: 0.00101620244073169
+    1h: 0.0013200219582428286
+    1d: 0.00308162358363665
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 69.0
+  volume_1h: 137284.0
+  volume_1d: 3088089.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000328e-08
+    top_bid: 2.63e-06
+    top_ask: 2.64e-06
+    order_book_depth: 16561462.0
+  core: false
+POWRBTC:
+  market_cap: 76203429
+  circulating_supply: 529761884.726046
+  last_price: 1.36e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0009502840217578517
+    1d: 0.003489715443932882
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 208.0
+  volume_1h: 11210.0
+  volume_1d: 174807.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.35e-06
+    top_ask: 1.36e-06
+    order_book_depth: 185835.0
+  core: false
+XRPBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.055e-05
+  volatility:
+    15m: 0.00032228742437800126
+    1h: 0.00037281804490223706
+    1d: 0.0030426361624842574
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 9827.7
+  volume_1h: 36517.3
+  volume_1d: 2004602.8
+  arbitrage:
+    bid_ask_spread: 9.99999999999821e-09
+    top_bid: 2.055e-05
+    top_ask: 2.056e-05
+    order_book_depth: 95775.0
+  core: false
+ENJBTC:
+  market_cap: 116894516
+  circulating_supply: 1853811397.004306
+  last_price: 6.0e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.005127937961520072
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 258241.8
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 5.9e-07
+    top_ask: 6.0e-07
+    order_book_depth: 477239.3
+  core: false
+STORJBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.19e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0028593507364298577
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 94130.0
+  arbitrage:
+    bid_ask_spread: 2.0000000000000232e-08
+    top_bid: 2.18e-06
+    top_ask: 2.2e-06
+    order_book_depth: 94166.0
+  core: false
+KMDBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.8e-07
+  volatility:
+    15m: 0.006852852356728836
+    1h: 0.003338177204636512
+    1d: 0.015026030381767185
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 11885.0
+  volume_1h: 16354.0
+  volume_1d: 1868040.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 3.7e-07
+    top_ask: 3.8e-07
+    order_book_depth: 1405608.0
+  core: false
+BATBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.14e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0011320774867897663
+    1d: 0.004110792739133284
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 21987.0
+  volume_1h: 26390.0
+  volume_1d: 297377.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.14e-06
+    top_ask: 1.15e-06
+    order_book_depth: 575586.0
+  core: false
+LSKBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.36e-06
+  volatility:
+    15m: 0.0007930600650220285
+    1h: 0.000551845308204924
+    1d: 0.00302646506177747
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 280.0
+  volume_1h: 280.0
+  volume_1d: 37306.2
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 3.36e-06
+    top_ask: 3.37e-06
+    order_book_depth: 20017.6
+  core: false
+MANABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.29e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003915267849369194
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 4662.0
+  volume_1d: 73544.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.28e-06
+    top_ask: 2.29e-06
+    order_book_depth: 249506.0
+  core: false
+ADXBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.005494886757875656
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 622088.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 7.0e-07
+    top_ask: 7.1e-07
+    order_book_depth: 1344990.0
+  core: false
+ADABTC:
+  market_cap: 19594092902
+  circulating_supply: 36125593968.2479
+  last_price: 5.12e-06
+  volatility:
+    15m: 0.0007653322997243421
+    1h: 0.001023709166213988
+    1d: 0.003321405630851591
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 18033.7
+  volume_1h: 75484.6
+  volume_1d: 2612811.6
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 5.11e-06
+    top_ask: 5.12e-06
+    order_book_depth: 1118563.0999999999
+  core: true
+XLMBTC:
+  market_cap: 7029906190
+  circulating_supply: 31231363923.10677
+  last_price: 2.12e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0019652004530199252
+    1d: 0.0036976215717681887
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 28989.0
+  volume_1d: 1188694.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.12e-06
+    top_ask: 2.13e-06
+    order_book_depth: 2383879.0
+  core: true
+ICXBTC:
+  market_cap: 125914351
+  circulating_supply: 1069102515.314947
+  last_price: 1.12e-06
+  volatility:
+    15m: 0.0
+    1h: 0.001172873071899331
+    1d: 0.0029794679870000077
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 41733.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.11e-06
+    top_ask: 1.12e-06
+    order_book_depth: 315272.0
+  core: false
+RLCBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 8.35e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003592827601106794
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 7145.0
+  arbitrage:
+    bid_ask_spread: 2.999999999999971e-08
+    top_bid: 8.32e-06
+    top_ask: 8.35e-06
+    order_book_depth: 32285.299999999996
+  core: false
+PIVXBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.14e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0025580687108252387
+    1d: 0.004132389155139249
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 57213.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.13e-06
+    top_ask: 1.14e-06
+    order_book_depth: 211845.0
+  core: false
+STEEMBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.16e-06
+  volatility:
+    15m: 0.003396041309391819
+    1h: 0.0025398530603562676
+    1d: 0.007427018250987668
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 17498.0
+  volume_1h: 18537.0
+  volume_1d: 56131.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.15e-06
+    top_ask: 1.16e-06
+    order_book_depth: 518535.0
+  core: false
+ONTBTC:
+  market_cap: 104341933
+  circulating_supply: 914697857.0
+  last_price: 1.08e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0035704630000484633
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 56009.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.07e-06
+    top_ask: 1.08e-06
+    order_book_depth: 315520.0
+  core: false
+WANBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 9.9e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0027390476431549443
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 10312.0
+  volume_1h: 16200.0
+  volume_1d: 249874.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 9.9e-07
+    top_ask: 1.0e-06
+    order_book_depth: 272690.0
+  core: false
+SYSBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.0e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.006517710758208644
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 206230.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 3.0e-07
+    top_ask: 3.1e-07
+    order_book_depth: 1209157.0
+  core: false
+ZENBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.53e-05
+  volatility:
+    15m: 0.0005573858146635818
+    1h: 0.0011872727107330595
+    1d: 0.0031460895402209412
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 125.52
+  volume_1h: 1259.91
+  volume_1d: 22525.19
+  arbitrage:
+    bid_ask_spread: 2.0000000000000486e-07
+    top_bid: 6.52e-05
+    top_ask: 6.54e-05
+    order_book_depth: 2964.0200000000004
+  core: false
+THETABTC:
+  market_cap: 651767997
+  circulating_supply: 1000000000.0
+  last_price: 6.15e-06
+  volatility:
+    15m: 0.0006382955919429817
+    1h: 0.0007017804416693575
+    1d: 0.0031771931932655113
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 205.6
+  volume_1h: 952.0
+  volume_1d: 50579.5
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 6.16e-06
+    top_ask: 6.17e-06
+    order_book_depth: 61005.100000000006
+  core: false
+IOTXBTC:
+  market_cap: 194286052
+  circulating_supply: 9441368979.0
+  last_price: 2.0e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.009229934338308928
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 251887.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999984e-09
+    top_bid: 1.9e-07
+    top_ask: 2.0e-07
+    order_book_depth: 9723474.0
+  core: false
+DATABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.4e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.01745428910118276
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1790.0
+  volume_1d: 656265.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 1.3e-07
+    top_ask: 1.4e-07
+    order_book_depth: 5937464.0
+  core: false
+ARDRBTC:
+  market_cap: 77318205
+  circulating_supply: 998466231.0
+  last_price: 7.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003722200818739154
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 189372.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 7.2e-07
+    top_ask: 7.3e-07
+    order_book_depth: 421008.0
+  core: false
+VETBTC:
+  market_cap: 1750240691
+  circulating_supply: 85985041177.0
+  last_price: 1.9e-07
+  volatility:
+    15m: 0.0
+    1h: 0.006509445549041184
+    1d: 0.025935784052010434
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 2418469.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999984e-09
+    top_bid: 1.9e-07
+    top_ask: 2.0e-07
+    order_book_depth: 114525281.0
+  core: false
+RVNBTC:
+  market_cap: 201422790
+  circulating_supply: 15316324185.4946
+  last_price: 1.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.029727702807672257
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 490046.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 1.2e-07
+    top_ask: 1.3e-07
+    order_book_depth: 34370331.0
+  core: false
+ONGBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.5e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.004155226898644885
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 136341.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.49e-06
+    top_ask: 1.5e-06
+    order_book_depth: 123773.0
+  core: false
+FETBTC:
+  market_cap: 1708506411
+  circulating_supply: 2604959126.672
+  last_price: 6.19e-06
+  volatility:
+    15m: 0.0007659867514186907
+    1h: 0.0009775383964044104
+    1d: 0.00393792860336507
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 70.0
+  volume_1h: 7474.1
+  volume_1d: 393225.6
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 6.2e-06
+    top_ask: 6.21e-06
+    order_book_depth: 122575.9
+  core: false
+ATOMBTC:
+  market_cap: 1808552719
+  circulating_supply: 456767970.259814
+  last_price: 3.75e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0003480986924620684
+    1d: 0.0028275066975327148
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 9.33
+  volume_1d: 12588.54
+  arbitrage:
+    bid_ask_spread: 1.9999999999999809e-07
+    top_bid: 3.73e-05
+    top_ask: 3.75e-05
+    order_book_depth: 46362.700000000004
+  core: false
+PHBBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.8e-06
+  volatility:
+    15m: 0.0013992735178660828
+    1h: 0.0013709996116222987
+    1d: 0.006114205958967137
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 1753.6
+  volume_1h: 2656.9
+  volume_1d: 73707.8
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 3.82e-06
+    top_ask: 3.84e-06
+    order_book_depth: 39866.7
+  core: false
+TFUELBTC:
+  market_cap: 222580650
+  circulating_supply: 6990509610.0
+  last_price: 3.0e-07
+  volatility:
+    15m: 0.01881072939909726
+    1h: 0.00890588137227168
+    1d: 0.00800523791352366
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 37065.0
+  volume_1h: 80794.0
+  volume_1d: 1770516.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 3.0e-07
+    top_ask: 3.1e-07
+    order_book_depth: 776484.0
+  core: false
+ALGOBTC:
+  market_cap: 1488369336
+  circulating_supply: 8635903439.769669
+  last_price: 1.63e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0016013421117706706
+    1d: 0.00641803329586576
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 826.0
+  volume_1h: 58000.0
+  volume_1d: 2114786.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.63e-06
+    top_ask: 1.64e-06
+    order_book_depth: 1746583.0
+  core: false
+DOGEBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.49e-06
+  volatility:
+    15m: 0.0017817416127495075
+    1h: 0.000867926073205498
+    1d: 0.003509299591524924
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 454.0
+  volume_1h: 86621.0
+  volume_1d: 10956028.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.49e-06
+    top_ask: 1.5e-06
+    order_book_depth: 47287582.0
+  core: false
+DUSKBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.7e-07
+  volatility:
+    15m: 0.005567942539842155
+    1h: 0.002712268978767154
+    1d: 0.00418897090890829
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 1349.0
+  volume_1h: 1349.0
+  volume_1d: 412416.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999957e-09
+    top_bid: 4.7e-07
+    top_ask: 4.8e-07
+    order_book_depth: 743820.0
+  core: false
+ANKRBTC:
+  market_cap: 134715628
+  circulating_supply: 10000000000.0
+  last_price: 1.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.020259203255376262
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 619672.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 1.2e-07
+    top_ask: 1.3e-07
+    order_book_depth: 17886774.0
+  core: false
+CHZBTC:
+  market_cap: 328854918
+  circulating_supply: 9693398123.0
+  last_price: 3.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.003945118514570431
+    1d: 0.012333385962502875
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 43817.0
+  volume_1d: 555424.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 3.2e-07
+    top_ask: 3.3e-07
+    order_book_depth: 6228621.0
+  core: false
+BANDBTC:
+  market_cap: 83839913
+  circulating_supply: 155942920.54912
+  last_price: 5.11e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0007598574570865179
+    1d: 0.0034467802907918355
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 46.0
+  volume_1d: 10473.9
+  arbitrage:
+    bid_ask_spread: 2.0000000000000656e-08
+    top_bid: 5.07e-06
+    top_ask: 5.09e-06
+    order_book_depth: 26481.6
+  core: false
+XTZBTC:
+  market_cap: 543173032
+  circulating_supply: 1049248001.812589
+  last_price: 4.89e-06
+  volatility:
+    15m: 0.0008029331776895346
+    1h: 0.0006533773510601511
+    1d: 0.0024161664760067917
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 2906.8
+  volume_1h: 22185.3
+  volume_1d: 172720.3
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 4.89e-06
+    top_ask: 4.9e-06
+    order_book_depth: 79439.59999999999
+  core: false
+HBARBTC:
+  market_cap: 6122867141
+  circulating_supply: 42379959715.14233
+  last_price: 1.37e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.00556575643907572
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 109.0
+  volume_1h: 209426.0
+  volume_1d: 2992116.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.36e-06
+    top_ask: 1.37e-06
+    order_book_depth: 14311245.0
+  core: false
+NKNBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.004460775443848493
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 257586.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 2.1e-07
+    top_ask: 2.2e-07
+    order_book_depth: 900583.0
+  core: false
+STXBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.02e-06
+  volatility:
+    15m: 0.00044469424611052273
+    1h: 0.0007860348486689592
+    1d: 0.0031157838093315285
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 1060.2
+  volume_1h: 63853.9
+  volume_1d: 872245.1
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 6.02e-06
+    top_ask: 6.03e-06
+    order_book_depth: 157315.0
+  core: false
+KAVABTC:
+  market_cap: 427244111
+  circulating_supply: 1082853337.0
+  last_price: 3.72e-06
+  volatility:
+    15m: 0.0
+    1h: 0.00034903193292446096
+    1d: 0.0021290239885265677
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 990.2
+  volume_1d: 84771.7
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 3.72e-06
+    top_ask: 3.73e-06
+    order_book_depth: 165095.2
+  core: false
+ARPABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.0e-07
+  volatility:
+    15m: 0.012726725805353556
+    1h: 0.01690772432505765
+    1d: 0.04230623275422527
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 112426.0
+  volume_1h: 1284400.0
+  volume_1d: 7137341.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999984e-09
+    top_bid: 1.9e-07
+    top_ask: 2.0e-07
+    order_book_depth: 8394090.0
+  core: false
+BCHBTC:
+  market_cap: 10300937513
+  circulating_supply: 19891412.39665078
+  last_price: 0.004886
+  volatility:
+    15m: 0.00045684499134615776
+    1h: 0.0003337616699656448
+    1d: 0.0034315392009232767
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 2.812
+  volume_1h: 15.49
+  volume_1d: 3216.228
+  arbitrage:
+    bid_ask_spread: 1.0000000000001327e-06
+    top_bid: 0.004885
+    top_ask: 0.004886
+    order_book_depth: 9.409
+  core: true
+OGNBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.9e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.00410602275160896
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 681209.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 4.8e-07
+    top_ask: 4.9e-07
+    order_book_depth: 1155840.0
+  core: false
+LTOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0240723357396348
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 8372.0
+  volume_1d: 543257.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 1.2e-07
+    top_ask: 1.3e-07
+    order_book_depth: 1393824.0
+  core: false
+COTIBTC:
+  market_cap: 108285315
+  circulating_supply: 2202281108.522011
+  last_price: 4.7e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003690362009041333
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 423933.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 4.6e-07
+    top_ask: 4.7e-07
+    order_book_depth: 1839347.0
+  core: false
+SOLBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.0013878
+  volatility:
+    15m: 0.0005381269143931535
+    1h: 0.00041471398916780657
+    1d: 0.0019888807529534307
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 212.511
+  volume_1h: 754.975
+  volume_1d: 68133.66
+  arbitrage:
+    bid_ask_spread: 1.0000000000005664e-07
+    top_bid: 0.0013877
+    top_ask: 0.0013878
+    order_book_depth: 551.97
+  core: false
+CTSIBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.008454252505182273
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 479028.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 5.2e-07
+    top_ask: 5.3e-07
+    order_book_depth: 467420.0
+  core: false
+HIVEBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.84e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0031911179261312574
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 6254.0
+  volume_1d: 104064.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.83e-06
+    top_ask: 1.84e-06
+    order_book_depth: 223091.0
+  core: false
+CHRBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.1e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0045176131207801205
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 105987.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 7.0e-07
+    top_ask: 7.1e-07
+    order_book_depth: 223191.0
+  core: false
+COMPBTC:
+  market_cap: 397682333
+  circulating_supply: 9391290.126550943
+  last_price: 0.0004
+  volatility:
+    15m: 0.0
+    1h: 0.0006542156330694551
+    1d: 0.0029708528684384648
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 25.423
+  volume_1d: 1150.735
+  arbitrage:
+    bid_ask_spread: 1.9999999999999944e-06
+    top_bid: 0.000398
+    top_ask: 0.0004
+    order_book_depth: 396.18
+  core: false
+SXPBTC:
+  market_cap: 108056484
+  circulating_supply: 647202407.0090421
+  last_price: 1.56e-06
+  volatility:
+    15m: 0.001702300903900762
+    1h: 0.0008292287323619208
+    1d: 0.003053670853633154
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 6476.2
+  volume_1h: 6476.2
+  volume_1d: 93687.7
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.56e-06
+    top_ask: 1.57e-06
+    order_book_depth: 341045.8
+  core: false
+SNXBTC:
+  market_cap: 192752263
+  circulating_supply: 343466216.99839866
+  last_price: 5.31e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0026072590328343518
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 14852.2
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 5.29e-06
+    top_ask: 5.31e-06
+    order_book_depth: 44131.4
+  core: false
+MKRBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.01769
+  volatility:
+    15m: 0.00015116586081019424
+    1h: 0.00042325217002122235
+    1d: 0.0028036840573445894
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.1685
+  volume_1h: 15.2438
+  volume_1d: 385.9333
+  arbitrage:
+    bid_ask_spread: 9.999999999999593e-06
+    top_bid: 0.0177
+    top_ask: 0.01771
+    order_book_depth: 10.257800000000001
+  core: false
+RUNEBTC:
+  market_cap: 455192308
+  circulating_supply: 351492907.0
+  last_price: 1.221e-05
+  volatility:
+    15m: 0.00021906659173149268
+    1h: 0.0005000512049480657
+    1d: 0.002373286645515473
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 249.6
+  volume_1h: 1016.7
+  volume_1d: 28153.3
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.222e-05
+    top_ask: 1.223e-05
+    order_book_depth: 11611.0
+  core: false
+FIOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.01082691818515495
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 57119.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 1.3e-07
+    top_ask: 1.4e-07
+    order_book_depth: 2319579.0
+  core: false
+AVABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.62e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0008399284579408158
+    1d: 0.0026977040358537718
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 446.5
+  volume_1d: 27558.0
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 4.62e-06
+    top_ask: 4.64e-06
+    order_book_depth: 11452.599999999999
+  core: false
+YFIBTC:
+  market_cap: 166770300
+  circulating_supply: 33811.00782169136
+  last_price: 0.04659
+  volatility:
+    15m: 0.00027593868963232676
+    1h: 0.00040167258320824114
+    1d: 0.0015849757849620472
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.04748
+  volume_1h: 0.39563
+  volume_1d: 8.98311
+  arbitrage:
+    bid_ask_spread: 3.999999999999837e-05
+    top_bid: 0.04658
+    top_ask: 0.04662
+    order_book_depth: 0.54264
+  core: false
+JSTBTC:
+  market_cap: 336471905
+  circulating_supply: 9900000000.0
+  last_price: 3.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.009395649097713506
+    1d: 0.03213356252171626
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 631.0
+  volume_1d: 40684.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 3.2e-07
+    top_ask: 3.3e-07
+    order_book_depth: 2278482.0
+  core: false
+CRVBTC:
+  market_cap: 684223009
+  circulating_supply: 1368392612.0
+  last_price: 4.74e-06
+  volatility:
+    15m: 0.0011324628894594816
+    1h: 0.0011440532330310234
+    1d: 0.004480057614621174
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 2381.2
+  volume_1h: 18787.1
+  volume_1d: 400105.0
+  arbitrage:
+    bid_ask_spread: 2.0000000000000656e-08
+    top_bid: 4.72e-06
+    top_ask: 4.74e-06
+    order_book_depth: 398242.6
+  core: false
+SANDBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.18e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0005944699131544685
+    1d: 0.0022466145900756035
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 584.0
+  volume_1h: 3698.0
+  volume_1d: 143209.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000328e-08
+    top_bid: 2.18e-06
+    top_ask: 2.19e-06
+    order_book_depth: 254891.0
+  core: false
+NMRBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.88e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0007250258318119012
+    1d: 0.008863412567917757
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1208.78
+  volume_1d: 5693.26
+  arbitrage:
+    bid_ask_spread: 3.000000000000073e-07
+    top_bid: 6.85e-05
+    top_ask: 6.88e-05
+    order_book_depth: 5325.48
+  core: false
+DOTBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.12e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0004159390127182925
+    1d: 0.0027733534061176283
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1208.62
+  volume_1d: 53435.2
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 3.12e-05
+    top_ask: 3.13e-05
+    order_book_depth: 77023.7
+  core: false
+PAXGBTC:
+  market_cap: 931399732
+  circulating_supply: 278583.378
+  last_price: 0.03158
+  volatility:
+    15m: 0.00016936707345528167
+    1h: 0.00027529102517643704
+    1d: 0.0015147432536758245
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.1466
+  volume_1h: 0.8394
+  volume_1d: 83.7974
+  arbitrage:
+    bid_ask_spread: 9.999999999996123e-06
+    top_bid: 0.0316
+    top_ask: 0.03161
+    order_book_depth: 10.892700000000001
+  core: false
+TRBBTC:
+  market_cap: 90932345
+  circulating_supply: 2686544.6887626383
+  last_price: 0.000321
+  volatility:
+    15m: 0.0011365819334186846
+    1h: 0.0018448250280656748
+    1d: 0.004234796882948103
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.743
+  volume_1h: 5.002
+  volume_1d: 665.419
+  arbitrage:
+    bid_ask_spread: 9.9999999999997e-07
+    top_bid: 0.00032
+    top_ask: 0.000321
+    order_book_depth: 833.673
+  core: false
+WBTCBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.9996
+  volatility:
+    15m: 0.0
+    1h: 2.9324669818408013e-05
+    1d: 6.921385796721233e-05
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1.01372
+  volume_1d: 63.61743
+  arbitrage:
+    bid_ask_spread: 9.999999999998899e-05
+    top_bid: 0.9995
+    top_ask: 0.9996
+    order_book_depth: 235.51794999999998
+  core: false
+SUSHIBTC:
+  market_cap: 110913153
+  circulating_supply: 192789255.8554817
+  last_price: 5.43e-06
+  volatility:
+    15m: 0.0009807751996786514
+    1h: 0.0006827068704845722
+    1d: 0.002579943014532366
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 54.2
+  volume_1h: 54.2
+  volume_1d: 25818.2
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 5.42e-06
+    top_ask: 5.44e-06
+    order_book_depth: 62770.899999999994
+  core: false
+KSMBTC:
+  market_cap: 205865387
+  circulating_supply: 16708427.49819639
+  last_price: 0.0001162
+  volatility:
+    15m: 0.0
+    1h: 0.0007279343820046267
+    1d: 0.003486679400227724
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 305.131
+  volume_1d: 3441.761
+  arbitrage:
+    bid_ask_spread: 3.000000000000073e-07
+    top_bid: 0.0001163
+    top_ask: 0.0001166
+    order_book_depth: 87.08600000000001
+  core: false
+EGLDBTC:
+  market_cap: 368440628
+  circulating_supply: 28393805.0
+  last_price: 0.0001225
+  volatility:
+    15m: 0.0007169615228764195
+    1h: 0.0006650580575445235
+    1d: 0.002386714165546026
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 96.28
+  volume_1h: 255.66
+  volume_1d: 4886.95
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 0.0001223
+    top_ask: 0.0001224
+    order_book_depth: 3710.56
+  core: false
+DIABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.43e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0005298154091135664
+    1d: 0.0037373905562431064
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 258.2
+  volume_1d: 12329.8
+  arbitrage:
+    bid_ask_spread: 1.0000000000000328e-08
+    top_bid: 3.42e-06
+    top_ask: 3.43e-06
+    order_book_depth: 57306.2
+  core: false
+UMABTC:
+  market_cap: 93654919
+  circulating_supply: 88101004.11107443
+  last_price: 1.001e-05
+  volatility:
+    15m: 0.0005329237126867834
+    1h: 0.00036358784811533514
+    1d: 0.0029391388395375363
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 396.0
+  volume_1h: 503.1
+  volume_1d: 6469.7
+  arbitrage:
+    bid_ask_spread: 2.999999999999971e-08
+    top_bid: 1.0e-05
+    top_ask: 1.003e-05
+    order_book_depth: 2957.3
+  core: false
+BELBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.26e-06
+  volatility:
+    15m: 0.0029664646591890387
+    1h: 0.003947515521475354
+    1d: 0.0160205022329318
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 4762.5
+  volume_1h: 25760.4
+  volume_1d: 604475.0
+  arbitrage:
+    bid_ask_spread: 1.0000000000000328e-08
+    top_bid: 2.27e-06
+    top_ask: 2.28e-06
+    order_book_depth: 53734.6
+  core: false
+UNIBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.51e-05
+  volatility:
+    15m: 0.00040990988023377733
+    1h: 0.0006667798122294856
+    1d: 0.002913135336267639
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 13.72
+  volume_1h: 173.41
+  volume_1d: 20495.95
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 6.51e-05
+    top_ask: 6.52e-05
+    order_book_depth: 21067.3
+  core: false
+OXTBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.9e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 77741.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 4.8e-07
+    top_ask: 4.9e-07
+    order_book_depth: 1567741.0
+  core: false
+AVAXBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.0001619
+  volatility:
+    15m: 0.00041975073413255085
+    1h: 0.0005543456427545651
+    1d: 0.002109319063304199
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 426.14
+  volume_1h: 5257.49
+  volume_1d: 101940.39
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 0.0001619
+    top_ask: 0.000162
+    order_book_depth: 7941.4400000000005
+  core: false
+FLMBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.008926279747360641
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 432800.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 3.2e-07
+    top_ask: 3.3e-07
+    order_book_depth: 1337536.0
+  core: false
+SCRTBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.42e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.005000170329675646
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 105921.5
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.41e-06
+    top_ask: 1.42e-06
+    order_book_depth: 154195.8
+  core: false
+XVSBTC:
+  market_cap: 93505650
+  circulating_supply: 16660486.96024544
+  last_price: 5.3e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0018142141329510007
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 1816.15
+  arbitrage:
+    bid_ask_spread: 3.000000000000005e-07
+    top_bid: 5.28e-05
+    top_ask: 5.31e-05
+    order_book_depth: 1265.76
+  core: false
+AAVEBTC:
+  market_cap: 4026134017
+  circulating_supply: 15173432.00819333
+  last_price: 0.0025
+  volatility:
+    15m: 0.0007420630455548932
+    1h: 0.0006308121322887198
+    1d: 0.0032494939825596
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 1.396
+  volume_1h: 5.17
+  volume_1d: 1701.682
+  arbitrage:
+    bid_ask_spread: 1.0000000000001327e-06
+    top_bid: 0.002499
+    top_ask: 0.0025
+    order_book_depth: 193.47
+  core: false
+NEARBTC:
+  market_cap: 2512544028
+  circulating_supply: 1230398019.0
+  last_price: 1.927e-05
+  volatility:
+    15m: 0.00041543198224731106
+    1h: 0.0005242555031608513
+    1d: 0.0029637688892982152
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 94.0
+  volume_1h: 724.1
+  volume_1d: 29046.9
+  arbitrage:
+    bid_ask_spread: 9.99999999999821e-09
+    top_bid: 1.925e-05
+    top_ask: 1.926e-05
+    order_book_depth: 3267.7000000000003
+  core: false
+FILBTC:
+  market_cap: 1503371054
+  circulating_supply: 679489075.0
+  last_price: 2.09e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0008670897279377292
+    1d: 0.003021129690796704
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 827.92
+  volume_1h: 1890.79
+  volume_1d: 22467.58
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-08
+    top_bid: 2.08e-05
+    top_ask: 2.09e-05
+    order_book_depth: 99857.79
+  core: false
+INJBTC:
+  market_cap: 1009227487
+  circulating_supply: 97727220.33
+  last_price: 9.75e-05
+  volatility:
+    15m: 0.0013045608348722535
+    1h: 0.0009304561971998183
+    1d: 0.0035941508955985046
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 464.55
+  volume_1h: 596.5
+  volume_1d: 8124.46
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 9.74e-05
+    top_ask: 9.75e-05
+    order_book_depth: 11682.51
+  core: false
+AUDIOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.1e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0065158806870676544
+    1d: 0.008585976308217808
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 135471.1
+  volume_1d: 454619.6
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 5.1e-07
+    top_ask: 5.2e-07
+    order_book_depth: 961457.2999999998
+  core: false
+CTKBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.92e-06
+  volatility:
+    15m: 0.0016181565236461281
+    1h: 0.0035256050324506518
+    1d: 0.006457413222197933
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 120.0
+  volume_1h: 30626.1
+  volume_1d: 196129.5
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 2.91e-06
+    top_ask: 2.93e-06
+    order_book_depth: 56146.8
+  core: false
+AXSBTC:
+  market_cap: 353434273
+  circulating_supply: 165366715.1520486
+  last_price: 2.02e-05
+  volatility:
+    15m: 0.0013296579199622747
+    1h: 0.0013000873183054372
+    1d: 0.0032259394978713675
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 74.25
+  volume_1h: 850.86
+  volume_1d: 41706.67
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-08
+    top_bid: 2.02e-05
+    top_ask: 2.03e-05
+    order_book_depth: 39243.200000000004
+  core: false
+STRAXBTC:
+  market_cap: 85162933
+  circulating_supply: 1980277428.924382
+  last_price: 4.0e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.006772372744506031
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 102761.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 4.0e-07
+    top_ask: 4.1e-07
+    order_book_depth: 603758.0
+  core: false
+ROSEBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.1e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.006419072127184936
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 1004001.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 2.1e-07
+    top_ask: 2.2e-07
+    order_book_depth: 8676337.0
+  core: false
+SKLBTC:
+  market_cap: 101265959
+  circulating_supply: 5775852671.0
+  last_price: 1.6e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.01742264575289504
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 63956.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999984e-09
+    top_bid: 1.6e-07
+    top_ask: 1.7e-07
+    order_book_depth: 1749721.0
+  core: false
+GLMBTC:
+  market_cap: 213940424
+  circulating_supply: 1000000000.0
+  last_price: 2.02e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0006413246846345995
+    1d: 0.0028295614055369087
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1089.0
+  volume_1d: 32989.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.02e-06
+    top_ask: 2.03e-06
+    order_book_depth: 140039.0
+  core: false
+GRTBTC:
+  market_cap: 785944469
+  circulating_supply: 9875210669.585089
+  last_price: 7.5e-07
+  volatility:
+    15m: 0.003516595288321384
+    1h: 0.0024597008859738017
+    1d: 0.006730843350667047
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 3400.0
+  volume_1h: 58866.0
+  volume_1d: 695317.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 7.5e-07
+    top_ask: 7.6e-07
+    order_book_depth: 1572645.0
+  core: false
+1INCHBTC:
+  market_cap: 232940981
+  circulating_supply: 1393960052.418814
+  last_price: 1.58e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.002651006648536702
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 7062.4
+  volume_1d: 133366.4
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.57e-06
+    top_ask: 1.58e-06
+    order_book_depth: 329601.4
+  core: false
+OGBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.73e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0019403508923807257
+    1d: 0.005912788240698198
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 34.6
+  volume_1h: 44.5
+  volume_1d: 19834.5
+  arbitrage:
+    bid_ask_spread: 1.9999999999999809e-07
+    top_bid: 3.72e-05
+    top_ask: 3.74e-05
+    order_book_depth: 4058.9
+  core: false
+CELOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.37e-06
+  volatility:
+    15m: 0.0011229463945900144
+    1h: 0.0009270955067440863
+    1d: 0.0032159687273334977
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 3977.0
+  volume_1h: 16227.9
+  volume_1d: 139472.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.37e-06
+    top_ask: 2.38e-06
+    order_book_depth: 64793.4
+  core: false
+RIFBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.8e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.007744086850283723
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 492901.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999957e-09
+    top_bid: 4.7e-07
+    top_ask: 4.8e-07
+    order_book_depth: 2534247.0
+  core: false
+SFPBTC:
+  market_cap: 220159271
+  circulating_supply: 500000000.0
+  last_price: 4.16e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.002683992918598267
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 2403.0
+  volume_1d: 12886.0
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 4.14e-06
+    top_ask: 4.16e-06
+    order_book_depth: 20143.0
+  core: false
+DODOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.4e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0037196831708806834
+    1d: 0.006510649871208312
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 1000.0
+  volume_1h: 21020.4
+  volume_1d: 1797922.8
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 3.4e-07
+    top_ask: 3.5e-07
+    order_book_depth: 733069.3
+  core: false
+CAKEBTC:
+  market_cap: 719331816
+  circulating_supply: 320597838.7875076
+  last_price: 2.117e-05
+  volatility:
+    15m: 0.000447914940964416
+    1h: 0.0003120228915715244
+    1d: 0.0025240456024861434
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 247.83
+  volume_1h: 1240.23
+  volume_1d: 37367.33
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 2.116e-05
+    top_ask: 2.118e-05
+    order_book_depth: 4250.7
+  core: false
+AUCTIONBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.98e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0011395691419199743
+    1d: 0.00232803028490391
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 39.4
+  volume_1d: 3454.0
+  arbitrage:
+    bid_ask_spread: 3.000000000000073e-07
+    top_bid: 7.95e-05
+    top_ask: 7.98e-05
+    order_book_depth: 508.82000000000005
+  core: false
+PHABTC:
+  market_cap: 76062359
+  circulating_supply: 801073542.274789
+  last_price: 9.0e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.004116921595270074
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 19985.0
+  volume_1d: 181672.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 8.9e-07
+    top_ask: 9.0e-07
+    order_book_depth: 399823.0
+  core: false
+FISBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.0e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0018336466335327282
+    1d: 0.006842733089182904
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 52134.0
+  volume_1d: 1540928.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 6.9e-07
+    top_ask: 7.0e-07
+    order_book_depth: 678392.0
+  core: false
+OMBTC:
+  market_cap: 190670027
+  circulating_supply: 977220357.9558961
+  last_price: 1.83e-06
+  volatility:
+    15m: 0.0021375282315811805
+    1h: 0.003454168874836727
+    1d: 0.0047897374152670764
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 1620.0
+  volume_1h: 41178.0
+  volume_1d: 121545.3
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.84e-06
+    top_ask: 1.85e-06
+    order_book_depth: 93975.5
+  core: false
+SUPERBTC:
+  market_cap: 276702586
+  circulating_supply: 451694843.416917
+  last_price: 5.76e-06
+  volatility:
+    15m: 0.0004631910605067975
+    1h: 0.0006151192898745136
+    1d: 0.0037443894015590407
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 810.0
+  volume_1h: 9250.0
+  volume_1d: 133106.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 5.76e-06
+    top_ask: 5.77e-06
+    order_book_depth: 66270.0
+  core: false
+CFXBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.9e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.009344054402204484
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 5526616.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 6.9e-07
+    top_ask: 7.0e-07
+    order_book_depth: 1986366.0
+  core: false
+FORTHBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.184e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0005438661474509638
+    1d: 0.0019181258664763194
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 21.9
+  volume_1d: 2325.08
+  arbitrage:
+    bid_ask_spread: 3.999999999999962e-08
+    top_bid: 2.182e-05
+    top_ask: 2.186e-05
+    order_book_depth: 425.34
+  core: false
+ICPBTC:
+  market_cap: 2518636240
+  circulating_supply: 534988212.39201
+  last_price: 4.45e-05
+  volatility:
+    15m: 0.000601939734036956
+    1h: 0.0004177630745509994
+    1d: 0.0027747194040607308
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 155.9
+  volume_1h: 548.76
+  volume_1d: 9863.38
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 4.45e-05
+    top_ask: 4.46e-05
+    order_book_depth: 19181.629999999997
+  core: false
+ARBTC:
+  market_cap: 323895192
+  circulating_supply: 65454185.5381511
+  last_price: 4.67e-05
+  volatility:
+    15m: 0.0013200787453759278
+    1h: 0.001232832869059128
+    1d: 0.0034643619553970657
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 42.56
+  volume_1h: 248.99
+  volume_1d: 4038.88
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 4.67e-05
+    top_ask: 4.68e-05
+    order_book_depth: 4706.0199999999995
+  core: false
+LPTBTC:
+  market_cap: 249930568
+  circulating_supply: 41977802.39098754
+  last_price: 5.63e-05
+  volatility:
+    15m: 0.0004755538112320852
+    1h: 0.0008012966408187226
+    1d: 0.004437138566208198
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 401.45
+  volume_1h: 1827.44
+  volume_1d: 23047.11
+  arbitrage:
+    bid_ask_spread: 1.0000000000000243e-07
+    top_bid: 5.62e-05
+    top_ask: 5.63e-05
+    order_book_depth: 11561.84
+  core: false
+ATABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.8e-07
+  volatility:
+    15m: 0.006852852356728836
+    1h: 0.003338177204636512
+    1d: 0.003654590987983332
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 494.0
+  volume_1h: 494.0
+  volume_1d: 34658.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 3.8e-07
+    top_ask: 3.9e-07
+    order_book_depth: 1607546.0
+  core: false
+BAKEBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 9.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0015601198358483816
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 44323.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 9.2e-07
+    top_ask: 9.3e-07
+    order_book_depth: 379768.6
+  core: false
+QNTBTC:
+  market_cap: 1509566672
+  circulating_supply: 14544176.164091088
+  last_price: 0.0009787
+  volatility:
+    15m: 0.0004827076389419667
+    1h: 0.0003403766987092964
+    1d: 0.0016641379135733767
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 4.174
+  volume_1h: 16.832
+  volume_1d: 392.781
+  arbitrage:
+    bid_ask_spread: 4.000000000000097e-07
+    top_bid: 0.0009786
+    top_ask: 0.000979
+    order_book_depth: 2.5799999999999996
+  core: false
+FLOWBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.97e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0004368755402040991
+    1d: 0.0020285532922161096
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 54.6
+  volume_1h: 2610.58
+  volume_1d: 214482.69
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.97e-06
+    top_ask: 2.98e-06
+    order_book_depth: 125799.35
+  core: false
+MINABTC:
+  market_cap: 202218842
+  circulating_supply: 1239609938.840039
+  last_price: 1.55e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003057314183739377
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 100231.3
+  arbitrage:
+    bid_ask_spread: 2.000000000000002e-08
+    top_bid: 1.53e-06
+    top_ask: 1.55e-06
+    order_book_depth: 371172.9
+  core: false
+WAXPBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.8e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.005399886063606079
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 82327.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 1.7e-07
+    top_ask: 1.8e-07
+    order_book_depth: 4285704.0
+  core: false
+DYDXBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.67e-06
+  volatility:
+    15m: 0.0005710710297274005
+    1h: 0.0006689200948766819
+    1d: 0.0034174780863020266
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 293.15
+  volume_1h: 1218.31
+  volume_1d: 51322.9
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 4.68e-06
+    top_ask: 4.69e-06
+    order_book_depth: 122423.28
+  core: false
+GALABTC:
+  market_cap: 605446131
+  circulating_supply: 45101434957.46702
+  last_price: 1.2e-07
+  volatility:
+    15m: 0.020558557070186508
+    1h: 0.010014531613909536
+    1d: 0.017791184106692608
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 15620.0
+  volume_1h: 15620.0
+  volume_1d: 2217820.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 1.2e-07
+    top_ask: 1.3e-07
+    order_book_depth: 30078794.0
+  core: false
+ILVBTC:
+  market_cap: 92757832
+  circulating_supply: 9474903.295915939
+  last_price: 9.3e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.006626695354784642
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 2245.643
+  arbitrage:
+    bid_ask_spread: 9.999999999999972e-07
+    top_bid: 9.2e-05
+    top_ask: 9.3e-05
+    order_book_depth: 5850.9490000000005
+  core: false
+YGGBTC:
+  market_cap: 75642711
+  circulating_supply: 527375748.3967922
+  last_price: 1.36e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0016677734422761153
+    1d: 0.0042431915942618545
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 8199.1
+  volume_1d: 101235.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.35e-06
+    top_ask: 1.36e-06
+    order_book_depth: 240369.2
+  core: false
+FIDABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.4e-07
+  volatility:
+    15m: 0.00809882551249773
+    1h: 0.003945118514570431
+    1d: 0.016408156562496324
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 26170.7
+  volume_1h: 26170.7
+  volume_1d: 892102.2
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 6.3e-07
+    top_ask: 6.4e-07
+    order_book_depth: 247982.5
+  core: false
+AGLDBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.12e-06
+  volatility:
+    15m: 0.002538962813601637
+    1h: 0.0015662150389934028
+    1d: 0.00298628121898965
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 1531.4
+  volume_1h: 2883.2
+  volume_1d: 36923.4
+  arbitrage:
+    bid_ask_spread: 3.999999999999962e-08
+    top_bid: 6.08e-06
+    top_ask: 6.12e-06
+    order_book_depth: 15555.3
+  core: false
+RAREBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.6e-07
+  volatility:
+    15m: 0.0
+    1h: 0.002769976829379235
+    1d: 0.005301822064790236
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 232.3
+  volume_1d: 166765.7
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 4.6e-07
+    top_ask: 4.7e-07
+    order_book_depth: 453957.0
+  core: false
+SSVBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.48e-05
+  volatility:
+    15m: 0.00041307765365137237
+    1h: 0.0018008711606332887
+    1d: 0.003710532746872118
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 27.93
+  volume_1h: 32.98
+  volume_1d: 751.21
+  arbitrage:
+    bid_ask_spread: 1.999999999999913e-07
+    top_bid: 6.48e-05
+    top_ask: 6.5e-05
+    order_book_depth: 2338.99
+  core: false
+MOVRBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.93e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003605078904729174
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 1761.051
+  arbitrage:
+    bid_ask_spread: 1.9999999999999809e-07
+    top_bid: 4.88e-05
+    top_ask: 4.9e-05
+    order_book_depth: 1789.963
+  core: false
+ENSBTC:
+  market_cap: 599555606
+  circulating_supply: 33165585.054507963
+  last_price: 0.0001707
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0021632689405036687
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 178.83
+  arbitrage:
+    bid_ask_spread: 3.000000000000073e-07
+    top_bid: 0.0001706
+    top_ask: 0.0001709
+    order_book_depth: 158.04000000000002
+  core: false
+PYRBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 8.39e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0032885373327235824
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 4338.381
+  arbitrage:
+    bid_ask_spread: 6.999999999999933e-08
+    top_bid: 8.27e-06
+    top_ask: 8.34e-06
+    order_book_depth: 11044.572
+  core: false
+SANTOSBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.725e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0053369685123782935
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 7524.49
+  arbitrage:
+    bid_ask_spread: 1.3000000000000045e-07
+    top_bid: 1.698e-05
+    top_ask: 1.711e-05
+    order_book_depth: 742.21
+  core: false
+BICOBTC:
+  market_cap: 83912890
+  circulating_supply: 962654138.1511792
+  last_price: 8.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0038530286400061493
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 59915.68
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 8.2e-07
+    top_ask: 8.3e-07
+    order_book_depth: 1134214.2399999998
+  core: false
+FLUXBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.77e-06
+  volatility:
+    15m: 0.0015185297835933042
+    1h: 0.0016505631191567087
+    1d: 0.0052557866378165966
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 104.57
+  volume_1h: 1334.54
+  volume_1d: 73074.75
+  arbitrage:
+    bid_ask_spread: 2.000000000000002e-08
+    top_bid: 1.75e-06
+    top_ask: 1.77e-06
+    order_book_depth: 78159.41
+  core: false
+PEOPLEBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.7e-07
+  volatility:
+    15m: 0.03366012636072571
+    1h: 0.021137475293415996
+    1d: 0.03436074565875177
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 2855.8
+  volume_1h: 3455.8
+  volume_1d: 24425.6
+  arbitrage:
+    bid_ask_spread: 9.999999999999984e-09
+    top_bid: 1.6e-07
+    top_ask: 1.7e-07
+    order_book_depth: 30763990.9
+  core: false
+JOEBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.28e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.00312566967183704
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 116524.74
+  arbitrage:
+    bid_ask_spread: 2.000000000000002e-08
+    top_bid: 1.27e-06
+    top_ask: 1.29e-06
+    order_book_depth: 442179.67
+  core: false
+ACHBTC:
+  market_cap: 86856800
+  circulating_supply: 4943691067.145604
+  last_price: 1.6e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.006035166776971485
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 6077.0
+  volume_1d: 62405.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999984e-09
+    top_bid: 1.6e-07
+    top_ask: 1.7e-07
+    order_book_depth: 7112552.0
+  core: false
+IMXBTC:
+  market_cap: 786466022
+  circulating_supply: 1866386427.3898141
+  last_price: 4.0e-06
+  volatility:
+    15m: 0.0019315579470490553
+    1h: 0.0018897660912192992
+    1d: 0.0038826443799785627
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 110.74
+  volume_1h: 85972.25
+  volume_1d: 187992.9
+  arbitrage:
+    bid_ask_spread: 2.999999999999971e-08
+    top_bid: 3.97e-06
+    top_ask: 4.0e-06
+    order_book_depth: 59580.36
+  core: false
+GLMRBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.7e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003539297145806798
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 282904.6
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 5.7e-07
+    top_ask: 5.8e-07
+    order_book_depth: 3176686.0
+  core: false
+LOKABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.003027649092577304
+    1d: 0.012873662557612901
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 131156.9
+  volume_1d: 968573.5
+  arbitrage:
+    bid_ask_spread: 2.000000000000002e-08
+    top_bid: 4.2e-07
+    top_ask: 4.4e-07
+    order_book_depth: 483241.39999999997
+  core: false
+API3BTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.55e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0004674646713853599
+    1d: 0.0030207362964116812
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 155.07
+  volume_1d: 26991.2
+  arbitrage:
+    bid_ask_spread: 2.0000000000000656e-08
+    top_bid: 5.51e-06
+    top_ask: 5.53e-06
+    order_book_depth: 8990.39
+  core: false
+XNOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.95e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003272770213375455
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 9739.69
+  arbitrage:
+    bid_ask_spread: 2.999999999999971e-08
+    top_bid: 7.9e-06
+    top_ask: 7.93e-06
+    order_book_depth: 5334.37
+  core: false
+GMTBTC:
+  market_cap: 121531317
+  circulating_supply: 2933298226.929743
+  last_price: 3.9e-07
+  volatility:
+    15m: 0.0
+    1h: 0.004824462189952413
+    1d: 0.0035643120892799754
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 69565.7
+  volume_1d: 300608.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999957e-09
+    top_bid: 3.9e-07
+    top_ask: 4.0e-07
+    order_book_depth: 2160276.9
+  core: false
+KDABTC:
+  market_cap: 120841950
+  circulating_supply: 321163945.27941
+  last_price: 3.53e-06
+  volatility:
+    15m: 0.0
+    1h: 0.001148168884861573
+    1d: 0.0045593458969710905
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 8253.94
+  volume_1d: 83499.26
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 3.54e-06
+    top_ask: 3.56e-06
+    order_book_depth: 36203.520000000004
+  core: false
+APEBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.52e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0006299152411002599
+    1d: 0.002460135028892657
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1866.54
+  volume_1d: 18971.3
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 5.51e-06
+    top_ask: 5.52e-06
+    order_book_depth: 64138.04000000001
+  core: false
+ASTRBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.1e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.006789886159937924
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 546611.7
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 2.0e-07
+    top_ask: 2.1e-07
+    order_book_depth: 7126078.5
+  core: false
+NEXOBTC:
+  market_cap: 1201937624
+  circulating_supply: 1000000000.0
+  last_price: 1.138e-05
+  volatility:
+    15m: 0.0009030027529866108
+    1h: 0.0009169802351416125
+    1d: 0.0024731382511960784
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 16533.71
+  volume_1d: 255245.49
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 1.138e-05
+    top_ask: 1.14e-05
+    order_book_depth: 15020.77
+  core: false
+LDOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 6.68e-06
+  volatility:
+    15m: 0.0
+    1h: 0.00019460225856624967
+    1d: 0.002499615377218934
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1716.09
+  volume_1d: 32137.53
+  arbitrage:
+    bid_ask_spread: 2.0000000000000656e-08
+    top_bid: 6.67e-06
+    top_ask: 6.69e-06
+    order_book_depth: 15592.69
+  core: false
+OPBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.05e-06
+  volatility:
+    15m: 0.0010626689539261543
+    1h: 0.0009367625161194402
+    1d: 0.0030565894143709032
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 286.15
+  volume_1d: 130612.18
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 5.05e-06
+    top_ask: 5.07e-06
+    order_book_depth: 46042.630000000005
+  core: false
+STGBTC:
+  market_cap: 144371781
+  circulating_supply: 971464728.370142
+  last_price: 1.4e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0021696700613840513
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 10115.5
+  volume_1d: 66712.9
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.4e-06
+    top_ask: 1.41e-06
+    order_book_depth: 718623.7
+  core: false
+POLYXBTC:
+  market_cap: 138741497
+  circulating_supply: 1176121582.547564
+  last_price: 1.11e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0035130781876984815
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 182519.4
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.11e-06
+    top_ask: 1.12e-06
+    order_book_depth: 142464.59999999998
+  core: false
+APTBTC:
+  market_cap: 2949802801
+  circulating_supply: 644274818.2380329
+  last_price: 4.317e-05
+  volatility:
+    15m: 0.00038747762267265715
+    1h: 0.0007149066417259329
+    1d: 0.0036047984282404693
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1295.93
+  volume_1d: 56066.44
+  arbitrage:
+    bid_ask_spread: 2.0000000000003197e-08
+    top_bid: 4.323e-05
+    top_ask: 4.325e-05
+    order_book_depth: 657.8499999999999
+  core: false
+HFTBTC:
+  market_cap: 78456230
+  circulating_supply: 581979873.776
+  last_price: 1.28e-06
+  volatility:
+    15m: 0.004333784227679843
+    1h: 0.0044975692380009764
+    1d: 0.029149005836394716
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 1590.3
+  volume_1h: 244923.0
+  volume_1d: 6689100.8
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.27e-06
+    top_ask: 1.28e-06
+    order_book_depth: 304915.4
+  core: false
+MAGICBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.13e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0011420079910598765
+    1d: 0.0037404530879302403
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 3485.1
+  volume_1d: 436805.3
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.13e-06
+    top_ask: 1.14e-06
+    order_book_depth: 89272.5
+  core: false
+IDBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.42e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003886903639369603
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 109759.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.39e-06
+    top_ask: 1.4e-06
+    order_book_depth: 298577.0
+  core: false
+ARBBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.07e-06
+  volatility:
+    15m: 0.0015458001225101088
+    1h: 0.000954178746928037
+    1d: 0.004696351223375222
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 3664.7
+  volume_1h: 72786.0
+  volume_1d: 1972515.1
+  arbitrage:
+    bid_ask_spread: 1.0000000000000328e-08
+    top_bid: 3.07e-06
+    top_ask: 3.08e-06
+    order_book_depth: 478436.9
+  core: false
+SUIBTC:
+  market_cap: 9264415170
+  circulating_supply: 3455015252.817221
+  last_price: 2.533e-05
+  volatility:
+    15m: 0.0004307198643020957
+    1h: 0.000557596080783724
+    1d: 0.002721109122842059
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 23.8
+  volume_1h: 11703.2
+  volume_1d: 249771.4
+  arbitrage:
+    bid_ask_spread: 1.0000000000001598e-08
+    top_bid: 2.531e-05
+    top_ask: 2.532e-05
+    order_book_depth: 18095.800000000003
+  core: true
+MAVBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.9e-07
+  volatility:
+    15m: 0.0
+    1h: 0.004631277532146734
+    1d: 0.03814280786789036
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 318381.0
+  volume_1d: 15828289.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 4.9e-07
+    top_ask: 5.0e-07
+    order_book_depth: 2896411.0
+  core: false
+PENDLEBTC:
+  market_cap: 561479304
+  circulating_supply: 164710124.7899907
+  last_price: 3.247e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0005384935655427147
+    1d: 0.0023074106276312284
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 22.2
+  volume_1d: 1335.3
+  arbitrage:
+    bid_ask_spread: 3.999999999999962e-08
+    top_bid: 3.203e-05
+    top_ask: 3.207e-05
+    order_book_depth: 1478.1
+  core: false
+ARKMBTC:
+  market_cap: 192919475
+  circulating_supply: 441999596.0
+  last_price: 4.1e-06
+  volatility:
+    15m: 0.0
+    1h: 0.002197676764337689
+    1d: 0.003893234838059588
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 6917.1
+  volume_1d: 31278.4
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 4.12e-06
+    top_ask: 4.13e-06
+    order_book_depth: 18818.3
+  core: false
+WLDBTC:
+  market_cap: 1442406435
+  circulating_supply: 1687035515.781268
+  last_price: 8.07e-06
+  volatility:
+    15m: 0.0005891044334963561
+    1h: 0.0008846113937016351
+    1d: 0.003034413331850016
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 159.0
+  volume_1h: 25230.1
+  volume_1d: 445301.1
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 8.06e-06
+    top_ask: 8.07e-06
+    order_book_depth: 98900.9
+  core: false
+SEIBTC:
+  market_cap: 1555238717
+  circulating_supply: 5556944444.0
+  last_price: 2.62e-06
+  volatility:
+    15m: 0.0016129620407838317
+    1h: 0.0013157961721599763
+    1d: 0.0054484181075440735
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 120465.4
+  volume_1d: 1611875.4
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.61e-06
+    top_ask: 2.62e-06
+    order_book_depth: 1200028.5
+  core: false
+CYBERBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.1e-05
+  volatility:
+    15m: 0.0
+    1h: 0.000824028155155088
+    1d: 0.00416850700763782
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 23.62
+  volume_1d: 11974.9
+  arbitrage:
+    bid_ask_spread: 4.999999999999952e-08
+    top_bid: 1.098e-05
+    top_ask: 1.103e-05
+    order_book_depth: 3889.0999999999995
+  core: false
+TIABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.28e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0010092163641924347
+    1d: 0.004146076973857262
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1175.62
+  volume_1d: 46070.65
+  arbitrage:
+    bid_ask_spread: 1.0000000000000074e-07
+    top_bid: 1.28e-05
+    top_ask: 1.29e-05
+    order_book_depth: 170617.41999999998
+  core: false
+ORDIBTC:
+  market_cap: 148072231
+  circulating_supply: 21000000.0
+  last_price: 6.653e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0019726343388192912
+    1d: 0.003199229618583925
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 279.62
+  volume_1d: 2698.22
+  arbitrage:
+    bid_ask_spread: 3.4000000000000013e-07
+    top_bid: 6.656e-05
+    top_ask: 6.69e-05
+    order_book_depth: 1067.85
+  core: false
+NFPBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0024563945468079967
+    1d: 0.01577866077841278
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 46266.0
+  volume_1d: 1112593.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 5.1e-07
+    top_ask: 5.2e-07
+    order_book_depth: 708602.0
+  core: false
+AIBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.0e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0012889991186220342
+    1d: 0.005655960630690186
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 5227.8
+  volume_1d: 68025.0
+  arbitrage:
+    bid_ask_spread: 2.000000000000002e-08
+    top_bid: 9.9e-07
+    top_ask: 1.01e-06
+    order_book_depth: 106186.1
+  core: false
+MANTABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.67e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0015406971713706754
+    1d: 0.005293325172291923
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 2179.3
+  volume_1d: 111337.3
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.67e-06
+    top_ask: 1.68e-06
+    order_book_depth: 143841.80000000002
+  core: false
+ALTBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.4e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.009372929658170201
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 2366114.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999984e-09
+    top_bid: 2.3e-07
+    top_ask: 2.4e-07
+    order_book_depth: 2556067.0
+  core: false
+PYTHBTC:
+  market_cap: 562747551
+  circulating_supply: 5749986072.355876
+  last_price: 9.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0014150968584872223
+    1d: 0.0048324807731186985
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 4329.5
+  volume_1d: 132233.2
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 9.2e-07
+    top_ask: 9.3e-07
+    order_book_depth: 973700.0
+  core: false
+RONINBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 4.06e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0010120370276184617
+    1d: 0.0023312345031770393
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 4476.79
+  volume_1d: 41364.43
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 4.06e-06
+    top_ask: 4.08e-06
+    order_book_depth: 13095.96
+  core: false
+PORTALBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.8e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.00919723655956707
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 51131.8
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 2.7e-07
+    top_ask: 2.8e-07
+    order_book_depth: 1091814.7
+  core: false
+AXLBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 3.04e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0008621782184160566
+    1d: 0.004056253123449562
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 279.34
+  volume_1d: 43814.39
+  arbitrage:
+    bid_ask_spread: 3.0000000000000136e-08
+    top_bid: 3.01e-06
+    top_ask: 3.04e-06
+    order_book_depth: 49647.28999999999
+  core: false
+WIFBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.47e-06
+  volatility:
+    15m: 0.0010487520635229911
+    1h: 0.0010212438593992068
+    1d: 0.0050506243262949495
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 4449.56
+  volume_1d: 517580.62
+  arbitrage:
+    bid_ask_spread: 2.0000000000000656e-08
+    top_bid: 7.46e-06
+    top_ask: 7.48e-06
+    order_book_depth: 106036.6
+  core: false
+AEVOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.5e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.004654119462134374
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 213192.82
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 7.4e-07
+    top_ask: 7.5e-07
+    order_book_depth: 144987.72999999998
+  core: false
+ENABTC:
+  market_cap: 1541704413
+  circulating_supply: 6087500000.0
+  last_price: 2.39e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0005424537957534308
+    1d: 0.0034170992451448166
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 27580.43
+  volume_1d: 954575.73
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.39e-06
+    top_ask: 2.4e-06
+    order_book_depth: 656364.1900000001
+  core: false
+WBTC:
+  market_cap: 327358305
+  circulating_supply: 4649769579.0
+  last_price: 6.7e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.008116699005763447
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 589735.6
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 6.6e-07
+    top_ask: 6.7e-07
+    order_book_depth: 552941.5
+  core: false
+SAGABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.9e-06
+  volatility:
+    15m: 0.0014140806450392972
+    1h: 0.0013670692095597821
+    1d: 0.005323819584026041
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 3566.5
+  volume_1d: 97727.2
+  arbitrage:
+    bid_ask_spread: 1.0000000000000116e-08
+    top_bid: 1.89e-06
+    top_ask: 1.9e-06
+    order_book_depth: 248409.8
+  core: false
+TAOBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.003033
+  volatility:
+    15m: 0.0008440706718585372
+    1h: 0.00048655336609348943
+    1d: 0.00308371269374405
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 3.1715
+  volume_1d: 474.4803
+  arbitrage:
+    bid_ask_spread: 2.9999999999999645e-06
+    top_bid: 0.003033
+    top_ask: 0.003036
+    order_book_depth: 14.666
+  core: false
+OMNIBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.4e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0009233256097930784
+    1d: 0.004933274907180096
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 447.43
+  volume_1d: 17051.2
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-08
+    top_bid: 1.39e-05
+    top_ask: 1.4e-05
+    order_book_depth: 64865.90000000001
+  core: false
+BBBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.4e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.004431326712400613
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 4202.4
+  volume_1d: 1088273.8
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 7.3e-07
+    top_ask: 7.4e-07
+    order_book_depth: 224384.4
+  core: false
+IOBTC:
+  market_cap: 115476106
+  circulating_supply: 168769140.0931821
+  last_price: 6.47e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0010828237064320764
+    1d: 0.003817895614594545
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 18.85
+  volume_1h: 1004.34
+  volume_1d: 39351.16
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 6.45e-06
+    top_ask: 6.46e-06
+    order_book_depth: 28684.71
+  core: false
+ZKBTC:
+  market_cap: 317668016
+  circulating_supply: 7130046274.987008
+  last_price: 4.3e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0023317689820117117
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 92017.1
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 4.2e-07
+    top_ask: 4.3e-07
+    order_book_depth: 2721944.5
+  core: false
+ZROBTC:
+  market_cap: 204408941
+  circulating_supply: 111152854.20763355
+  last_price: 1.733e-05
+  volatility:
+    15m: 0.0003549309131858932
+    1h: 0.0008861054407685409
+    1d: 0.00348276975977951
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 136.21
+  volume_1h: 1196.29
+  volume_1d: 29279.27
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 1.731e-05
+    top_ask: 1.733e-05
+    order_book_depth: 1983.0900000000001
+  core: false
+BANANABTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 0.0001541
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0026856178974570574
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 1061.371
+  arbitrage:
+    bid_ask_spread: 4.99999999999985e-07
+    top_bid: 0.0001532
+    top_ask: 0.0001537
+    order_book_depth: 133.304
+  core: false
+RENDERBTC:
+  market_cap: 1580723984
+  circulating_supply: 518128769.0562826
+  last_price: 2.872e-05
+  volatility:
+    15m: 0.000894345762224278
+    1h: 0.00070771965156404
+    1d: 0.0028708482774213984
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 7.32
+  volume_1h: 977.4
+  volume_1d: 16192.02
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 2.87e-05
+    top_ask: 2.872e-05
+    order_book_depth: 481.52000000000004
+  core: false
+TONBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.648e-05
+  volatility:
+    15m: 0.0006599792399280774
+    1h: 0.0006400710441146039
+    1d: 0.0019295032761718572
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 248.52
+  volume_1h: 812.51
+  volume_1d: 46031.83
+  arbitrage:
+    bid_ask_spread: 1.0000000000001598e-08
+    top_bid: 2.647e-05
+    top_ask: 2.648e-05
+    order_book_depth: 2126.88
+  core: false
+SLFBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 7.4e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0017358521464109818
+    1d: 0.0040937170295360465
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 21637.6
+  volume_1d: 486070.9
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 7.4e-07
+    top_ask: 7.5e-07
+    order_book_depth: 267831.8
+  core: false
+POLBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.68e-06
+  volatility:
+    15m: 0.001581427466937401
+    1h: 0.00201795669920956
+    1d: 0.004624364376181206
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 112.5
+  volume_1h: 12541.1
+  volume_1d: 190072.0
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.67e-06
+    top_ask: 1.68e-06
+    order_book_depth: 551998.5
+  core: false
+EIGENBTC:
+  market_cap: 330875497
+  circulating_supply: 311279285.3870268
+  last_price: 1.007e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0035671040009893082
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 31011.32
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 1.0e-05
+    top_ask: 1.002e-05
+    order_book_depth: 2348.33
+  core: false
+SCRBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.29e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.003807116218381407
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 0.0
+  volume_1d: 27912.9
+  arbitrage:
+    bid_ask_spread: 2.0000000000000232e-08
+    top_bid: 2.27e-06
+    top_ask: 2.29e-06
+    order_book_depth: 28876.3
+  core: false
+PNUTBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.0e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0018005752075523935
+    1d: 0.004495361371328864
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 3301.6
+  volume_1d: 365414.0
+  arbitrage:
+    bid_ask_spread: 1.999999999999981e-08
+    top_bid: 1.99e-06
+    top_ask: 2.01e-06
+    order_book_depth: 328154.3
+  core: false
+MOVEBTC:
+  market_cap: 451418948
+  circulating_supply: 2600000000.0
+  last_price: 1.64e-06
+  volatility:
+    15m: 0.0016396395209351093
+    1h: 0.0011357670562638519
+    1d: 0.009410009560445779
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 124.0
+  volume_1d: 198799.5
+  arbitrage:
+    bid_ask_spread: 2.000000000000002e-08
+    top_bid: 1.63e-06
+    top_ask: 1.65e-06
+    order_book_depth: 120977.40000000001
+  core: false
+MEBTC:
+  market_cap: 106138218
+  circulating_supply: 150105622.689437
+  last_price: 6.65e-06
+  volatility:
+    15m: 0.0008013830342201544
+    1h: 0.0005754690141753226
+    1d: 0.0024424285515976555
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 1691.19
+  volume_1d: 9518.83
+  arbitrage:
+    bid_ask_spread: 2.0000000000000656e-08
+    top_bid: 6.66e-06
+    top_ask: 6.68e-06
+    order_book_depth: 452729.78
+  core: false
+USUALBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.8e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.004835907833612877
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 34862.8
+  volume_1h: 34862.8
+  volume_1d: 371489.3
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 5.7e-07
+    top_ask: 5.8e-07
+    order_book_depth: 260342.6
+  core: false
+SBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.84e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0
+    1d: 0.0027286908786748588
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 16163.8
+  volume_1d: 170482.4
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.83e-06
+    top_ask: 2.84e-06
+    order_book_depth: 179506.7
+  core: false
+BERABTC:
+  market_cap: 197803334
+  circulating_supply: 120300665.3808513
+  last_price: 1.55e-05
+  volatility:
+    15m: 0.0
+    1h: 0.0014553325708002625
+    1d: 0.00404516591410626
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 303.198
+  volume_1d: 4947.07
+  arbitrage:
+    bid_ask_spread: 9.000000000000083e-08
+    top_bid: 1.547e-05
+    top_ask: 1.556e-05
+    order_book_depth: 6970.659
+  core: false
+LAYERBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 5.94e-06
+  volatility:
+    15m: 0.0013566560503168496
+    1h: 0.0008875872366660782
+    1d: 0.0030542221967905306
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 2838.74
+  volume_1d: 37522.89
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 5.91e-06
+    top_ask: 5.92e-06
+    order_book_depth: 9414.510000000002
+  core: false
+HEIBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.72e-06
+  volatility:
+    15m: 0.0054470706927237334
+    1h: 0.003398506331673857
+    1d: 0.006288511229758178
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 39.7
+  volume_1h: 2015.1
+  volume_1d: 47904.5
+  arbitrage:
+    bid_ask_spread: 2.0000000000000232e-08
+    top_bid: 2.72e-06
+    top_ask: 2.74e-06
+    order_book_depth: 16929.4
+  core: false
+KAITOBTC:
+  market_cap: 376638682
+  circulating_supply: 241388889.0
+  last_price: 1.476e-05
+  volatility:
+    15m: 0.0009084338610211625
+    1h: 0.0004425183921849921
+    1d: 0.0033202064655441475
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 63.9
+  volume_1h: 63.9
+  volume_1d: 23773.5
+  arbitrage:
+    bid_ask_spread: 3.000000000000141e-08
+    top_bid: 1.476e-05
+    top_ask: 1.479e-05
+    order_book_depth: 2034.0
+  core: false
+SHELLBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 1.35e-06
+  volatility:
+    15m: 0.0
+    1h: 0.0009572714042707603
+    1d: 0.003522778673095701
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 128.0
+  volume_1d: 25859.3
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 1.34e-06
+    top_ask: 1.35e-06
+    order_book_depth: 108405.30000000002
+  core: false
+REDBTC:
+  market_cap: null
+  circulating_supply: null
+  last_price: 2.7e-06
+  volatility:
+    15m: 0.0009862038446952796
+    1h: 0.0008146136991238601
+    1d: 0.004782233378158024
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 40.0
+  volume_1h: 80.0
+  volume_1d: 16713.1
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 2.69e-06
+    top_ask: 2.7e-06
+    order_book_depth: 23856.7
+  core: false
+AWEBTC:
+  market_cap: 106702774
+  circulating_supply: 1942420283.0270672
+  last_price: 5.2e-07
+  volatility:
+    15m: 0.0
+    1h: 0.0025527237447220273
+    1d: 0.00497141919094223
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 35964.0
+  volume_1d: 2408182.0
+  arbitrage:
+    bid_ask_spread: 1.000000000000001e-08
+    top_bid: 5.1e-07
+    top_ask: 5.2e-07
+    order_book_depth: 414438.0
+  core: false
+ABTC:
+  market_cap: 747263788
+  circulating_supply: 1575160751.473
+  last_price: 4.48e-06
+  volatility:
+    15m: 0.0
+    1h: 0.000492384425553847
+    1d: 0.002913788416124586
+  stop_loss: 0.02
+  target_pnl: 0.03
+  trailing_stop: 0.01
+  max_hold_time: 600
+  taxes: 0.0
+  volume_15m: 0.0
+  volume_1h: 478.1
+  volume_1d: 8493.8
+  arbitrage:
+    bid_ask_spread: 9.999999999999904e-09
+    top_bid: 4.48e-06
+    top_ask: 4.49e-06
+    order_book_depth: 18632.1
+  core: false
