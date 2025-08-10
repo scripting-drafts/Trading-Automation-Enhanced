@@ -3,12 +3,12 @@ import yaml
 from datetime import datetime
 from statistics import stdev
 from binance.client import Client
-from binance.exceptions import BinanceAPIException
 from pycoingecko import CoinGeckoAPI
+API_KEY = os.environ['BINANCE_KEY']
+API_SECRET = os.environ['BINANCE_SECRET']
 
-from secret import API_KEY, API_SECRET
-YAML_FILE = "symbols.yaml"
-
+OUTPUT_FILE = "symbols.yaml"
+UPDATE_INTERVAL = 180
 cg = CoinGeckoAPI()
 
 def fetch_with_retry(func, *args, retries=3, **kwargs):
@@ -20,47 +20,6 @@ def fetch_with_retry(func, *args, retries=3, **kwargs):
             time.sleep(2)
     print("[ERROR] All retries failed.")
     return None
-
-def fetch_usdc_symbols(client):
-    info = fetch_with_retry(client.get_exchange_info)
-    if not info:
-        print("[ERROR] Could not fetch exchange info.")
-        return []
-    usdc_pairs = [s for s in info['symbols'] if s['quoteAsset'] == 'USDC' and s['status'] == 'TRADING']
-    print(f"Found {len(usdc_pairs)} USDC pairs")
-    return usdc_pairs
-
-def fetch_btc_pairs(client):
-    info = fetch_with_retry(client.get_exchange_info)
-    if not info:
-        print("[ERROR] Could not fetch exchange info.")
-        return []
-    # Fetch pairs with quoteAsset USDC, BTC, or ETH
-    pairs = [
-        s for s in info['symbols']
-        if s['quoteAsset'] == 'BTC' and s['status'] == 'TRADING'
-    ]
-    print(f"Found {len(pairs)} BTC pairs")
-    return pairs
-
-def fetch_usdc_btc_eth_pairs(client):
-    info = fetch_with_retry(client.get_exchange_info)
-    if not info:
-        print("[ERROR] Could not fetch exchange info.")
-        return []
-    # Fetch pairs with quoteAsset USDC, BTC, or ETH
-    pairs = [
-        s for s in info['symbols']
-        if s['quoteAsset'] in ('USDC', 'BTC', 'ETH') and s['status'] == 'TRADING'
-    ]
-    print(f"Found {len(pairs)} pairs (USDC, BTC, ETH)")
-    return pairs
-
-def calc_volatility(closes):
-    if len(closes) < 2:
-        return 0.0
-    returns = [(closes[i]/closes[i-1]) - 1 for i in range(1, len(closes))]
-    return float(stdev(returns)) if len(returns) > 1 else 0.0
 
 def build_coingecko_mapping(binance_base_assets):
     all_coins = fetch_with_retry(cg.get_coins_list) or []
@@ -74,7 +33,7 @@ def build_coingecko_mapping(binance_base_assets):
 
 def fetch_cg_marketcaps_and_supply(cg_ids):
     data = {}
-    batch_size = 250  # CoinGecko max per call
+    batch_size = 250
     for i in range(0, len(cg_ids), batch_size):
         sublist = cg_ids[i:i + batch_size]
         resp = fetch_with_retry(cg.get_coins_markets, vs_currency='usd', ids=','.join(sublist)) or []
@@ -86,9 +45,14 @@ def fetch_cg_marketcaps_and_supply(cg_ids):
             }
     return data
 
+def calc_volatility(closes):
+    if len(closes) < 2:
+        return 0.0
+    returns = [(closes[i]/closes[i-1]) - 1 for i in range(1, len(closes))]
+    return float(stdev(returns)) if len(returns) > 1 else 0.0
+
 def fetch_symbol_data(client, symbol_info, cg_entry):
     symbol = symbol_info['symbol']
-    base_asset = symbol_info['baseAsset']
     try:
         ticker = fetch_with_retry(client.get_ticker, symbol=symbol)
         if not ticker:
@@ -96,16 +60,13 @@ def fetch_symbol_data(client, symbol_info, cg_entry):
             return None
         last_price = float(ticker['lastPrice'])
 
-        # Get CoinGecko market cap and circulating supply if available
         market_cap = cg_entry.get("market_cap")
         circulating_supply = cg_entry.get("circulating_supply")
 
-        # Volatility
         closes_15m = [float(k[4]) for k in fetch_with_retry(client.get_klines, symbol=symbol, interval=Client.KLINE_INTERVAL_1MINUTE, limit=15) or []]
         closes_1h  = [float(k[4]) for k in fetch_with_retry(client.get_klines, symbol=symbol, interval=Client.KLINE_INTERVAL_1MINUTE, limit=60) or []]
         closes_1d  = [float(k[4]) for k in fetch_with_retry(client.get_klines, symbol=symbol, interval=Client.KLINE_INTERVAL_15MINUTE, limit=96) or []]
 
-        # Volumes
         klines_15m = fetch_with_retry(client.get_klines, symbol=symbol, interval=Client.KLINE_INTERVAL_15MINUTE, limit=1) or []
         klines_1h = fetch_with_retry(client.get_klines, symbol=symbol, interval=Client.KLINE_INTERVAL_1HOUR, limit=1) or []
         klines_1d = fetch_with_retry(client.get_klines, symbol=symbol, interval=Client.KLINE_INTERVAL_1DAY, limit=1) or []
@@ -114,7 +75,7 @@ def fetch_symbol_data(client, symbol_info, cg_entry):
             print(f"[ERROR] Failed to fetch depth for {symbol}")
             return None
 
-        data = {
+        return {
             "market_cap": market_cap,
             "circulating_supply": circulating_supply,
             "last_price": last_price,
@@ -123,11 +84,6 @@ def fetch_symbol_data(client, symbol_info, cg_entry):
                 "1h": calc_volatility(closes_1h),
                 "1d": calc_volatility(closes_1d)
             },
-            "stop_loss": 0.02,
-            "target_pnl": 0.03,
-            "trailing_stop": 0.01,
-            "max_hold_time": 600,
-            "taxes": 0.0,
             "volume_15m": float(klines_15m[0][5]) if klines_15m else 0,
             "volume_1h": float(klines_1h[0][5]) if klines_1h else 0,
             "volume_1d": float(klines_1d[0][5]) if klines_1d else 0,
@@ -138,63 +94,52 @@ def fetch_symbol_data(client, symbol_info, cg_entry):
                 "order_book_depth": sum(float(x[1]) for x in depth['bids']) + sum(float(x[1]) for x in depth['asks'])
             }
         }
-        print(f"OK: {symbol} [CG: {'yes' if market_cap else 'no'}]")
-        return data
     except Exception as e:
         print(f"[ERROR] {symbol}: {e}")
         return None
 
-def update_yaml(client):
-    print(f"\n[{datetime.now()}] Updating {YAML_FILE} ...")
-    usdc_symbols = fetch_btc_pairs(client)
-    if not usdc_symbols:
-        print("[WARNING] No USDC pairs found!")
-        return
-
-    binance_base_assets = list(set(s['baseAsset'] for s in usdc_symbols))
-    cg_mapping = build_coingecko_mapping(binance_base_assets)
-    cg_ids = list(set(cg_mapping.values()))
-    print(f"Fetching CG market data for {len(cg_ids)} assets.")
-    cg_market_data = fetch_cg_marketcaps_and_supply(cg_ids)
-
+def update_btc_eth_pairs(client):
+    target_symbols = ['BTCUSDT', 'ETHUSDT']
     data = {}
-    for i, symbol_info in enumerate(usdc_symbols):
-        symbol = symbol_info['symbol']
-        base_asset = symbol_info['baseAsset'].upper()
-        cg_entry = cg_market_data.get(base_asset, {})
+    print(f"\n[{datetime.now()}] Fetching BTCUSDT / ETHUSDT ...")
+
+    for symbol in target_symbols:
+        base_asset = symbol.replace("USDT", "")
+        cg_mapping = build_coingecko_mapping([base_asset])
+        cg_entry = {}
+        if cg_mapping:
+            cg_id = cg_mapping.get(base_asset.upper())
+            if cg_id:
+                cg_entry = fetch_cg_marketcaps_and_supply([cg_id]).get(base_asset.upper(), {})
+        symbol_info = {
+            'symbol': symbol,
+            'baseAsset': base_asset,
+            'quoteAsset': 'USDT',
+            'status': 'TRADING'
+        }
         symbol_data = fetch_symbol_data(client, symbol_info, cg_entry)
         if symbol_data:
             data[symbol] = symbol_data
         time.sleep(0.25)
-        if i % 10 == 0:
-            print(f"Processed {i+1}/{len(usdc_symbols)} symbols")
-
-    # ------ Dynamically tag top N by market cap as "core" ------
-    TOP_N_CORE = 5   # <--- adjust as desired!
-    # Filter out symbols with no market cap data
-    symbols_with_mc = [
-        (s, d.get("market_cap", 0) or 0)
-        for s, d in data.items() if d.get("market_cap")
-    ]
-    # Sort by market cap, highest first
-    top_core_symbols = set(s for s, mc in sorted(symbols_with_mc, key=lambda x: x[1], reverse=True)[:TOP_N_CORE])
-
-    # Now, update each symbol's 'core' field
-    for symbol in data:
-        data[symbol]['core'] = bool(symbol in top_core_symbols)
-    # ----------------------------------------------------------
 
     try:
-        with open(YAML_FILE, "w") as f:
-            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
-        print(f"[{datetime.now()}] {YAML_FILE} updated. {len(data)} USDC pairs.")
+        existing = {}
+        try:
+            with open(OUTPUT_FILE, "r") as f:
+                existing = yaml.safe_load(f) or {}
+        except FileNotFoundError:
+            pass
+
+        existing.update(data)
+        with open(OUTPUT_FILE, "w") as f:
+            yaml.dump(existing, f, default_flow_style=False, sort_keys=False)
+        print(f"[{datetime.now()}] Updated {', '.join(data.keys())} in {OUTPUT_FILE}")
     except Exception as e:
-        print(f"[ERROR] Failed to write YAML: {e}")
+        print(f"[ERROR] Failed to update YAML: {e}")
 
 if __name__ == "__main__":
     client = Client(API_KEY, API_SECRET, requests_params={'timeout': 10})
     while True:
-        start = datetime.now()
-        update_yaml(client)
-        print(f"Completed update at {datetime.now()} (took {datetime.now() - start})\n")
-        # No sleep here: loops as fast as allowed by API speed
+        update_btc_eth_pairs(client)
+        print(f"[INFO] Sleeping for {UPDATE_INTERVAL} seconds...\n")
+        time.sleep(UPDATE_INTERVAL)

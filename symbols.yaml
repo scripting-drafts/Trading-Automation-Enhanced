@@ -1,0 +1,32 @@
+BTCUSDT:
+  market_cap: 13374022
+  circulating_supply: 113.04256188
+  last_price: 118444.72
+  volatility:
+    15m: 0.000525176176289569
+    1h: 0.00040466543794330246
+    1d: 0.0013374250844323183
+  volume_15m: 110.34134
+  volume_1h: 379.43718
+  volume_1d: 8852.062
+  arbitrage:
+    bid_ask_spread: 0.00999999999476131
+    top_bid: 118444.72
+    top_ask: 118444.73
+    order_book_depth: 6.04289
+ETHUSDT:
+  market_cap: 69460
+  circulating_supply: 999819501.739918
+  last_price: 4168.1
+  volatility:
+    15m: 0.0008297871747153822
+    1h: 0.000739325018930009
+    1d: 0.002714050295131521
+  volume_15m: 3764.6595
+  volume_1h: 14452.6791
+  volume_1d: 343302.3651
+  arbitrage:
+    bid_ask_spread: 0.010000000000218279
+    top_bid: 4168.42
+    top_ask: 4168.43
+    order_book_depth: 91.9338

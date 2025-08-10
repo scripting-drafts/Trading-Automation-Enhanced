@@ -1,0 +1,17 @@
+[Unit]
+Description=Trading Automation Bot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/Trading-Automation
+ExecStart=/usr/bin/python3 /home/ubuntu/Trading-Automation/trading_automation.py  > output.log 2>&1 &
+Restart=always
+RestartSec=5
+User=ubuntu
+StandardOutput=append:/home/ubuntu/Trading-Automation/bot.log
+StandardError=append:/home/ubuntu/Trading-Automation/bot-error.log
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

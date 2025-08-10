@@ -1,0 +1,88 @@
+name: CI Test on AWS EC2
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout including submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Set up SSH Key from base64
+      run: |
+        printf "%s" "${{ secrets.AWS_EC2_KEY_B64 }}" | base64 -d > key.pem
+        chmod 600 key.pem
+
+    - name: load python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Upload .env to EC2
+      run: |
+        echo "BINANCE_KEY=${{ secrets.BINANCE_KEY }}" > .env
+        echo "BINANCE_SECRET=${{ secrets.BINANCE_SECRET }}" >> .env
+        echo "TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}" >> .env
+        echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
+
+        scp -i key.pem -o StrictHostKeyChecking=no .env \
+        ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:~/Trading-Automation/.env
+        
+        ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} \
+        "echo '.env' >> ~/Trading-Automation/.gitignore || true"
+ 
+    - name: Deploy EC2 Environment
+      run: |
+        ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << 'EOF'
+          if [ ! -f ~/.auriga_env_configured ]; then
+            echo "alias python=/usr/bin/python3.12" >> ~/.profile
+            echo "alias pip=/home/ubuntu/.local/bin/pip" >> ~/.profile
+            source .profile
+            sudo apt update && sudo apt upgrade
+            sudo apt install locate
+            sudo updatedb
+            wget -O get-pip.py https://bootstrap.pypa.io/get-pip.py 
+            sudo mv /usr/lib/python3.12/EXTERNALLY-MANAGED /usr/lib/python3.12/EXTERNALLY-MANAGED.old &>/dev/null
+            python3 get-pip.py
+            touch ~/.auriga_env_configured
+            echo "✔️ Environment configured."
+          else
+            echo "ℹ️ Environment already configured. Skipping alias setup."
+          fi
+        EOF
+        scp -o StrictHostKeyChecking=no -i key.pem -r "Trading-Automation" \
+        ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:~/
+        ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << 'EOF'
+          sudo mv /usr/lib/python3.12/EXTERNALLY-MANAGED /usr/lib/python3.12/EXTERNALLY-MANAGED.old &>/dev/null
+          cd Trading-Automation
+          python3 -m pip install -r requirements.txt || true
+        EOF
+    - name: Deploy Trading Service
+      run: |
+        scp -o StrictHostKeyChecking=no -i key.pem trading.service ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:~/
+        scp -o StrictHostKeyChecking=no -i key.pem symbols_update.service ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:~/
+        ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << 'EOF'
+          pkill python*
+          sudo mv ~/trading.service /etc/systemd/system/
+          sudo mv ~/symbols_update.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+          sudo systemctl enable symbols_update.service trading.service
+        EOF
+    - name: Restart Trading Service
+      run: |
+        ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << 'EOF'
+          sudo systemctl daemon-reload
+          sudo systemctl restart symbols_update.service
+          sudo systemctl restart trading.service
+          sudo systemctl status trading.service --no-pager
+        EOF
+        
