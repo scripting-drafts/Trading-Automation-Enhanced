@@ -1184,7 +1184,7 @@ async def send_alarm_message(text):
     bot = Bot(token=TELEGRAM_TOKEN)
     await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=text)
 
-def check_and_alarm_high_volume(context=None):
+async def check_and_alarm_high_volume(context=None):
     """Check all symbols for volume > MIN_VOLUME and send Telegram alarm if found."""
     stats = load_symbol_stats()
     if not stats:
@@ -1198,13 +1198,11 @@ def check_and_alarm_high_volume(context=None):
         msg = "🚨 High Volume Alert:\n"
         for symbol, vol in alarmed:
             msg += f"- {symbol}: Volume = {vol:,.0f}\n"
-        # Use asyncio to send alarm
-        import asyncio
-        asyncio.run(send_alarm_message(msg))
+        await send_alarm_message(msg)
 
 # --- Telegram alarm job setup ---
 async def alarm_job(context: CallbackContext):
-    check_and_alarm_high_volume()
+    await check_and_alarm_high_volume(context)
 
 if __name__ == "__main__":
     refresh_symbols()
@@ -1219,5 +1217,7 @@ if __name__ == "__main__":
         telegram_main()  # This blocks; run in main thread for proper Ctrl+C
     except KeyboardInterrupt:
         print("\n[INFO] Shutting down gracefully...")
+    finally:
+        print("[INFO] Goodbye!")
     finally:
         print("[INFO] Goodbye!")
