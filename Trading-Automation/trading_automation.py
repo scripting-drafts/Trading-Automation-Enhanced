@@ -1219,5 +1219,3 @@ if __name__ == "__main__":
         print("\n[INFO] Shutting down gracefully...")
     finally:
         print("[INFO] Goodbye!")
-    finally:
-        print("[INFO] Goodbye!")
