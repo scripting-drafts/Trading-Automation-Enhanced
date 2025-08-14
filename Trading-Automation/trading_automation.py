@@ -17,6 +17,7 @@ from telegram.ext import (
     JobQueue,
 )
 import apscheduler.util
+from functools import lru_cache
 from secrets import API_KEY, API_SECRET, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
 # API_KEY = os.environ['BINANCE_KEY']
 # API_SECRET = os.environ['BINANCE_SECRET']
@@ -46,8 +47,8 @@ MA_PERIODS_SHORT = 5
 MA_PERIODS_LONG = 20
 
 MAX_POSITIONS = 20
-MIN_PROFIT = 1.0       # %
-TRAIL_STOP = 0.6       # %
+MIN_PROFIT = 0.8       # %
+TRAIL_STOP = 0.5       # %
 MAX_HOLD_TIME = 900    # seconds
 INVEST_AMOUNT = 10     # USD per coin
 TRADE_LOG_FILE = "trades_detailed.csv"
@@ -937,29 +938,110 @@ def check_advanced_momentum(symbol, interval='1m', min_change=0.005):
         print(f"[ADVANCED MOMENTUM ERROR] {symbol} {interval}: {e}")
         return False, {}
 
-def has_recent_momentum(symbol, min_1m=MIN_1M, min_5m=MIN_5M, min_15m=MIN_15M):
-    """Enhanced momentum detection using multiple indicators."""
+# --- Dynamic momentum thresholds based on realized volatility (ATR%) ---
+
+def _atr_pct_from_klines(klines):
+    """
+    Compute ATR as a percent of last close using simple average TR.
+    klines: list of [open_time, open, high, low, close, volume, ...] (as returned by Binance)
+    Returns: atr_percent (e.g., 0.003 means 0.3%)
+    """
+    if len(klines) < 3:
+        return 0.002  # fallback ~0.2%
+    trs = []
+    prev_close = float(klines[0][4])
+    for i in range(1, len(klines)):
+        high = float(klines[i][2])
+        low = float(klines[i][3])
+        close = float(klines[i][4])
+        tr = max(
+            high - low,
+            abs(high - prev_close),
+            abs(low - prev_close)
+        )
+        trs.append(tr)
+        prev_close = close
+    if not trs:
+        return 0.002
+    atr = sum(trs) / len(trs)
+    last_close = float(klines[-1][4])
+    if last_close <= 0:
+        return 0.002
+    return atr / last_close  # ATR as fraction of price
+
+
+def dynamic_momentum_threshold(symbol, interval='1m', lookback=60,
+                               k=0.6, floor_=0.0008, cap_=0.02):
+    """
+    Returns a micro-scalp-friendly price-change threshold for this symbol+interval.
+
+    - lookback: number of candles to estimate ATR%
+    - k: multiplier on ATR% (higher k => stricter)
+    - floor_: minimum absolute threshold (as fraction, e.g. 0.0008 = 0.08%)
+    - cap_: maximum absolute threshold (e.g. 0.02 = 2%)
+    """
     try:
-        # Check 1m momentum with enhanced indicators
-        momentum_1m, indicators_1m = check_advanced_momentum(symbol, '1m', min_1m)
-        
-        # Check 5m momentum with enhanced indicators  
-        momentum_5m, indicators_5m = check_advanced_momentum(symbol, '5m', min_5m)
-        
-        # Check 15m momentum with enhanced indicators
-        momentum_15m, indicators_15m = check_advanced_momentum(symbol, '15m', min_15m)
-        
+        # +1 to ensure we have a previous close for TR calc
+        kl = client.get_klines(symbol=symbol, interval=interval, limit=lookback+1)
+        if not kl or len(kl) < 5:
+            # fallback if not enough data: a gentle fixed floor for scalping
+            thr = floor_
+        else:
+            vol_pct = _atr_pct_from_klines(kl)  # e.g., 0.003 = 0.3%
+            thr = k * vol_pct
+            # clamp to safe bounds
+            if thr < floor_:
+                thr = floor_
+            elif thr > cap_:
+                thr = cap_
+        return thr
+    except Exception as e:
+        print(f"[DYN THRESH ERROR] {symbol} {interval}: {e}")
+        return floor_  # conservative fallback
+
+
+def dynamic_momentum_set(symbol):
+    """
+    Produce per-interval dynamic thresholds tuned for micro-scalping.
+    We make shorter TFs a bit more sensitive (lower k), longer TFs stricter (higher k).
+    """
+    # You can tweak these multipliers & floors per your fills/slippage stats
+    thr_1m  = dynamic_momentum_threshold(symbol, '1m',  lookback=60,  k=0.55, floor_=0.0007, cap_=0.015)
+    thr_5m  = dynamic_momentum_threshold(symbol, '5m',  lookback=48,  k=0.70, floor_=0.0010, cap_=0.018)
+    thr_15m = dynamic_momentum_threshold(symbol, '15m', lookback=48,  k=0.85, floor_=0.0015, cap_=0.020)
+    return thr_1m, thr_5m, thr_15m
+
+
+def has_recent_momentum(symbol, min_1m=None, min_5m=None, min_15m=None):
+    """Enhanced momentum detection using multiple indicators with dynamic thresholds."""
+    try:
+        # derive dynamic thresholds if not provided
+        if min_1m is None or min_5m is None or min_15m is None:
+            min_1m, min_5m, min_15m = dynamic_momentum_set(symbol)
+
+        momentum_1m, indicators_1m     = check_advanced_momentum(symbol, '1m',  min_1m)
+        momentum_5m, indicators_5m     = check_advanced_momentum(symbol, '5m',  min_5m)
+        momentum_15m, indicators_15m   = check_advanced_momentum(symbol, '15m', min_15m)
+
+        print(f"[DEBUG] {symbol} Dynamic thresholds: 1m={min_1m*100:.2f}%  5m={min_5m*100:.2f}%  15m={min_15m*100:.2f}%")
         print(f"[DEBUG] {symbol} Momentum:")
-        print(f"  1m: {momentum_1m} - Price: {indicators_1m.get('pct_change', 0):.3f}% RSI: {indicators_1m.get('rsi', 0):.1f} Vol: {indicators_1m.get('volume_spike', False)} MA: {indicators_1m.get('ma_cross', False)}")
-        print(f"  5m: {momentum_5m} - Price: {indicators_5m.get('pct_change', 0):.3f}% RSI: {indicators_5m.get('rsi', 0):.1f} Vol: {indicators_5m.get('volume_spike', False)} MA: {indicators_5m.get('ma_cross', False)}")
-        print(f"  15m: {momentum_15m} - Price: {indicators_15m.get('pct_change', 0):.3f}% RSI: {indicators_15m.get('rsi', 0):.1f} Vol: {indicators_15m.get('volume_spike', False)} MA: {indicators_15m.get('ma_cross', False)}")
-        
-        # Require momentum in all timeframes for strong signal
+        print(f"  1m: {momentum_1m} - Price: {indicators_1m.get('pct_change', 0):.3f}% "
+              f"RSI: {indicators_1m.get('rsi', 0):.1f} Vol: {indicators_1m.get('volume_spike', False)} "
+              f"MA: {indicators_1m.get('ma_cross', False)}")
+        print(f"  5m: {momentum_5m} - Price: {indicators_5m.get('pct_change', 0):.3f}% "
+              f"RSI: {indicators_5m.get('rsi', 0):.1f} Vol: {indicators_5m.get('volume_spike', False)} "
+              f"MA: {indicators_5m.get('ma_cross', False)}")
+        print(f"  15m:{momentum_15m} - Price: {indicators_15m.get('pct_change', 0):.3f}% "
+              f"RSI: {indicators_15m.get('rsi', 0):.1f} Vol: {indicators_15m.get('volume_spike', False)} "
+              f"MA: {indicators_15m.get('ma_cross', False)}")
+
+        # Keep your strong confirmation rule (all TFs) for now; you can relax if fills are sparse
         return momentum_1m and momentum_5m and momentum_15m
-        
+
     except Exception as e:
         print(f"[MOMENTUM ERROR] {symbol}: {e}")
         return False
+
 
 def get_yaml_ranked_momentum(
         limit=MAX_POSITIONS, 
@@ -1085,6 +1167,20 @@ def invest_momentum_with_usdc_limit(usdc_limit):
             print(f"[INFO] Out of funds before buying {symbol}.")
             break
         print(f"[INFO] Attempting to buy {symbol} with ${amount:.2f}")
+
+        d1, d5, d15 = dynamic_momentum_set(symbol)
+        if not has_recent_momentum(symbol, d1, d5, d15):
+            # momentum faded; skip
+            continue
+
+        # Spread & liquidity guard — skip spready/thin books
+        ok, reason, diag = guard_tradability(symbol, side="BUY")
+        print(f"[GUARD] {symbol} -> {ok} ({reason}) {diag}")
+        if not ok:
+            # optionally notify via Telegram here using send_alarm_message(...)
+            # await send_alarm_message(f"⏸️ {symbol} skipped — {reason} | {diag}")
+            continue
+
         result = buy(symbol, amount=amount)
         if not result:
             print(f"[BUY ERROR] {symbol}: Buy failed, refreshing USDC balance and skipping.")
@@ -1092,6 +1188,182 @@ def invest_momentum_with_usdc_limit(usdc_limit):
         else:
             print(f"[INFO] Bought {symbol} for ${amount:.2f}")
 
+
+
+@lru_cache(maxsize=512)
+def get_symbol_meta(symbol):
+    """
+    Pulls tickSize, stepSize, minNotional from exchangeInfo.
+    Returns dict: {tick_size, step_size, min_notional}
+    """
+    info = client.get_symbol_info(symbol)
+    tick_size = step_size = None
+    min_notional = 0.0
+    if not info:
+        # Safe defaults (will be overridden by guards anyway)
+        return dict(tick_size=0.0, step_size=0.0, min_notional=10.0)
+
+    for f in info.get("filters", []):
+        t = f.get("filterType")
+        if t == "PRICE_FILTER":
+            tick_size = float(f.get("tickSize", "0"))
+        elif t == "LOT_SIZE":
+            step_size = float(f.get("stepSize", "0"))
+        elif t in ("MIN_NOTIONAL", "NOTIONAL"):
+            min_notional = float(f.get("minNotional", f.get("minNotional", "10")) or 10.0)
+
+    return dict(
+        tick_size=tick_size or 0.0,
+        step_size=step_size or 0.0,
+        min_notional=min_notional or 10.0
+    )
+
+def get_orderbook(symbol, limit=50):
+    """Returns bids, asks as lists of (price, qty) floats."""
+    ob = client.get_order_book(symbol=symbol, limit=limit)
+    bids = [(float(p), float(q)) for p, q in ob.get("bids", [])]
+    asks = [(float(p), float(q)) for p, q in ob.get("asks", [])]
+    return bids, asks
+
+def compute_spread_rel(bids, asks):
+    """Relative spread = (ask1 - bid1) / mid."""
+    if not bids or not asks:
+        return None
+    bid1 = bids[0][0]
+    ask1 = asks[0][0]
+    mid = (bid1 + ask1) / 2.0
+    if mid <= 0:
+        return None
+    return (ask1 - bid1) / mid
+
+def sum_depth_notional(levels, max_levels=None, max_price_drift=None, side="bid"):
+    """
+    Sum notional on top 'levels' or within max_price_drift (relative).
+    - side='bid' sums bids until price >= (1 - max_price_drift)*best_bid
+    - side='ask' sums asks until price <= (1 + max_price_drift)*best_ask
+    """
+    if not levels:
+        return 0.0
+    base_price = levels[0][0]
+    total = 0.0
+    count = 0
+    for price, qty in levels:
+        if max_levels is not None and count >= max_levels:
+            break
+        if max_price_drift is not None:
+            if side == "bid":
+                if price < base_price * (1.0 - max_price_drift):
+                    break
+            else:
+                if price > base_price * (1.0 + max_price_drift):
+                    break
+        total += price * qty
+        count += 1
+    return total
+
+def guard_tradability(symbol, side="BUY",
+                      max_rel_spread=0.0008,     # 0.08% default cap
+                      depth_levels=10,            # sum top-10 levels each side
+                      depth_price_window=0.002,   # or within ±0.2% of top
+                      min_depth_notional=5000.0,  # require >= $5k both sides
+                      min_top_size_usd=500.0,     # best bid/ask notional at L1
+                      min_depth_ratio=0.65        # bid/ask depth balance for longs
+                      ):
+    """
+    Returns (ok, reason, diagnostics) before placing orders.
+    - Spread must be tight in relative terms **and** not just 1–2 ticks wide by luck.
+    - Both sides need healthy notional near top of book.
+    - For BUY, bids shouldn't be too weak vs asks.
+    """
+    try:
+        meta = get_symbol_meta(symbol)
+        bids, asks = get_orderbook(symbol, limit=max(depth_levels, 20))
+
+        if not bids or not asks:
+            return False, "empty_book", {}
+
+        bid1_p, bid1_q = bids[0]
+        ask1_p, ask1_q = asks[0]
+
+        # 1) Relative spread check
+        rel_spread = compute_spread_rel(bids, asks)
+        if rel_spread is None:
+            return False, "spread_calc_failed", {}
+
+        # Tick-awareness: if tickSize exists, also require spread <= 4 ticks
+        mid = (bid1_p + ask1_p) / 2.0
+        tick_guard = True
+        if meta["tick_size"] and meta["tick_size"] > 0:
+            tick_guard = (ask1_p - bid1_p) <= (4.0 * meta["tick_size"])
+
+        if not (rel_spread <= max_rel_spread and tick_guard):
+            return False, "spread_too_wide", {
+                "rel_spread": rel_spread,
+                "tick_size": meta["tick_size"],
+                "tick_guard": tick_guard
+            }
+
+        # 2) Top-of-book notional sanity
+        l1_bid_notional = bid1_p * bid1_q
+        l1_ask_notional = ask1_p * ask1_q
+        if l1_bid_notional < min_top_size_usd or l1_ask_notional < min_top_size_usd:
+            return False, "l1_notional_too_small", {
+                "l1_bid_usd": l1_bid_notional,
+                "l1_ask_usd": l1_ask_notional
+            }
+
+        # 3) Depth near top (choose either levels or window — we combine both for robustness)
+        bid_depth_usd = max(
+            sum_depth_notional(bids, max_levels=depth_levels, side="bid"),
+            sum_depth_notional(bids, max_price_drift=depth_price_window, side="bid")
+        )
+        ask_depth_usd = max(
+            sum_depth_notional(asks, max_levels=depth_levels, side="ask"),
+            sum_depth_notional(asks, max_price_drift=depth_price_window, side="ask")
+        )
+
+        if min(bid_depth_usd, ask_depth_usd) < min_depth_notional:
+            return False, "depth_too_thin", {
+                "bid_depth_usd": bid_depth_usd,
+                "ask_depth_usd": ask_depth_usd
+            }
+
+        # 4) Balance check (for longs, bids shouldn’t be anemically thin)
+        depth_ratio = bid_depth_usd / max(ask_depth_usd, 1e-9)
+        if side.upper() == "BUY" and depth_ratio < min_depth_ratio:
+            return False, "bid_ask_imbalance_for_long", {
+                "bid_depth_usd": bid_depth_usd,
+                "ask_depth_usd": ask_depth_usd,
+                "depth_ratio": depth_ratio
+            }
+        if side.upper() == "SELL" and (1.0 / max(depth_ratio, 1e-9)) < min_depth_ratio:
+            return False, "ask_bid_imbalance_for_short", {
+                "bid_depth_usd": bid_depth_usd,
+                "ask_depth_usd": ask_depth_usd,
+                "depth_ratio": depth_ratio
+            }
+
+        # 5) Exchange minNotional check (ensure your intended order clears it)
+        # If you're sizing dynamically, you can plug the planned qty here:
+        est_qty = (min_top_size_usd / ask1_p) if side.upper() == "BUY" else (min_top_size_usd / bid1_p)
+        est_notional = est_qty * (ask1_p if side.upper() == "BUY" else bid1_p)
+        if est_notional < meta["min_notional"]:
+            return False, "below_exchange_min_notional", {
+                "estimated_order_usd": est_notional,
+                "exchange_min_notional": meta["min_notional"]
+            }
+
+        return True, "ok", {
+            "rel_spread": rel_spread,
+            "l1_bid_usd": l1_bid_notional,
+            "l1_ask_usd": l1_ask_notional,
+            "bid_depth_usd": bid_depth_usd,
+            "ask_depth_usd": ask_depth_usd,
+            "depth_ratio": depth_ratio
+        }
+
+    except Exception as e:
+        return False, f"guard_error:{e}", {}
 
 def get_bot_state():
     if not os.path.exists(BOT_STATE_FILE):
@@ -1185,7 +1457,6 @@ async def send_alarm_message(text):
     await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=text)
 
 async def check_and_alarm_high_volume(context=None):
-    """Check all symbols for volume > MIN_VOLUME and send Telegram alarm if found."""
     stats = load_symbol_stats()
     if not stats:
         return
@@ -1193,11 +1464,30 @@ async def check_and_alarm_high_volume(context=None):
     for symbol, s in stats.items():
         vol = s.get("volume_1d", 0) or 0
         if vol > MIN_VOLUME:
-            alarmed.append((symbol, vol))
+            # compute dynamic thresholds for this symbol
+            d1, d5, d15 = dynamic_momentum_set(symbol)
+
+            m1, ind1 = check_advanced_momentum(symbol, '1m',  d1)
+            m5, ind5 = check_advanced_momentum(symbol, '5m',  d5)
+            m15,ind15= check_advanced_momentum(symbol, '15m', d15)
+
+            pct1  = ind1.get('pct_change', 0) if ind1 else 0
+            pct5  = ind5.get('pct_change', 0) if ind5 else 0
+            pct15 = ind15.get('pct_change', 0) if ind15 else 0
+
+            diff1  = (d1*100)  - pct1
+            diff5  = (d5*100)  - pct5
+            diff15 = (d15*100) - pct15
+
+            alarmed.append((symbol, vol, m1, m5, m15, pct1, pct5, pct15, diff1, diff5, diff15, d1, d5, d15))
+
     if alarmed:
-        msg = "🚨 High Volume Alert:\n"
-        for symbol, vol in alarmed:
-            msg += f"- {symbol}: Volume = {vol:,.0f}\n"
+        msg = "🚨 High Volume Alert (dynamic thresholds):\n\n"
+        for (symbol, vol, m1, m5, m15, pct1, pct5, pct15, diff1, diff5, diff15, d1, d5, d15) in alarmed:
+            msg += f"📊 {symbol}: Volume = {vol:,.0f}\n"
+            msg += f"  1m: {'✅' if m1 else '❌'} {pct1:.2f}%  (Target {d1*100:.2f}%, need {max(0,diff1):.2f}%)\n"
+            msg += f"  5m: {'✅' if m5 else '❌'} {pct5:.2f}%  (Target {d5*100:.2f}%, need {max(0,diff5):.2f}%)\n"
+            msg += f" 15m: {'✅' if m15 else '❌'} {pct15:.2f}% (Target {d15*100:.2f}%, need {max(0,diff15):.2f}%)\n\n"
         await send_alarm_message(msg)
 
 # --- Telegram alarm job setup ---

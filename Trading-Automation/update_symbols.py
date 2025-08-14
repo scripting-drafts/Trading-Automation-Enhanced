@@ -1,10 +1,11 @@
 import time
 import yaml
+import os
 from datetime import datetime
 from statistics import stdev
 from binance.client import Client
 from pycoingecko import CoinGeckoAPI
-from secrets import API_KEY, API_SECRET  # Ensure you have a secrets.py file with these variables
+from secrets import API_KEY, API_SECRET
 # API_KEY = os.environ['BINANCE_KEY']
 # API_SECRET = os.environ['BINANCE_SECRET']
 
