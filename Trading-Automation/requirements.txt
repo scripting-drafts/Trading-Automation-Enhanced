@@ -1,0 +1,8 @@
+# Requirements for Trading Automation Enhanced with WebSocket Support
+python-binance>=1.0.16
+python-telegram-bot>=20.0
+PyYAML>=6.0
+APScheduler>=3.9.0
+pytz>=2021.3
+websockets>=10.0
+pycoingecko>=3.1.0

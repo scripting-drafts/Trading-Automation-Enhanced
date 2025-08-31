@@ -1,5 +1,6 @@
 research/
 secrets.py
+config.py
 *.csv
 bot_state.json
 symbols.yaml

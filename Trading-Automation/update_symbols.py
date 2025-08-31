@@ -5,12 +5,12 @@ from datetime import datetime
 from statistics import stdev
 from binance.client import Client
 from pycoingecko import CoinGeckoAPI
-from secrets import API_KEY, API_SECRET
+from config import API_KEY, API_SECRET
 # API_KEY = os.environ['BINANCE_KEY']
 # API_SECRET = os.environ['BINANCE_SECRET']
 
 OUTPUT_FILE = "symbols.yaml"
-UPDATE_INTERVAL = 60
+UPDATE_INTERVAL = 30
 cg = CoinGeckoAPI()
 
 def fetch_with_retry(func, *args, retries=3, **kwargs):
