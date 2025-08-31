@@ -1,4 +1,4 @@
-import yaml, pytz, json, os, csv, decimal, time, threading, math, random
+import yaml, pytz, json, os, csv, decimal, time, threading, math, random, asyncio
 from datetime import datetime
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
@@ -33,7 +33,9 @@ BASE_ASSET = 'USDC'
 DUST_LIMIT = 0.4
 
 MIN_MARKETCAP = 69_502  
-MIN_VOLUME = 300_000
+MIN_VOLUME_BTC = 660   # BTC operates on higher volume scale
+MIN_VOLUME_ETH = 500_000     # ETH has moderate volume
+MIN_VOLUME_DEFAULT = 300_000  # For other altcoins
 MIN_VOLATILITY = 0.04
 
 MIN_1M = 0.005   # 0.5% in 1m
@@ -165,6 +167,15 @@ def fetch_usdc_balance():
     except Exception as e:
         print(f"[ERROR] Fetching USDC balance: {e}")
         balance['usd'] = 0
+
+def get_min_volume_for_symbol(symbol):
+    """Get the appropriate minimum volume threshold based on the symbol."""
+    if symbol.startswith('BTC'):
+        return MIN_VOLUME_BTC
+    elif symbol.startswith('ETH'):
+        return MIN_VOLUME_ETH
+    else:
+        return MIN_VOLUME_DEFAULT
 
 def get_latest_price(symbol):
     try:
@@ -1098,7 +1109,6 @@ def has_recent_momentum(symbol, min_1m=None, min_5m=None, min_15m=None):
 def get_yaml_ranked_momentum(
         limit=MAX_POSITIONS, 
         min_marketcap=MIN_MARKETCAP, 
-        min_volume=MIN_VOLUME, 
         min_volatility=MIN_VOLATILITY):
     stats = load_symbol_stats()
     if not stats:
@@ -1114,6 +1124,10 @@ def get_yaml_ranked_momentum(
         vol = s.get("volume_1d", 0) or 0
         vola = s.get("volatility", {}).get("1d", 0) or 0
         price_change = float(ticker.get('priceChangePercent', 0))
+        
+        # Get symbol-specific minimum volume
+        min_volume = get_min_volume_for_symbol(symbol)
+        
         if mc < min_marketcap:
             print(f"[SKIP] {symbol}: market_cap {mc} < min {min_marketcap}")
             continue
@@ -1517,7 +1531,8 @@ async def check_and_alarm_high_volume(context=None):
     
     for symbol, s in stats.items():
         vol = s.get("volume_1d", 0) or 0
-        if vol > MIN_VOLUME:
+        min_volume = get_min_volume_for_symbol(symbol)
+        if vol > min_volume:
             # compute dynamic thresholds for this symbol
             d1, d5, d15 = dynamic_momentum_set(symbol)
 
