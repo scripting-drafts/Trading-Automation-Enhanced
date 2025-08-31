@@ -461,6 +461,21 @@ def buy(symbol, amount=None):
             'trade_time': time.time()
         }
         print(f"[DEBUG] Actual USDC balance after buy attempt: {balance['usd']}")
+        
+        # Send investment alert
+        import asyncio
+        try:
+            asyncio.create_task(send_alarm_message(
+                f"💰 INVESTMENT MADE\n\n"
+                f"📊 {symbol}\n"
+                f"💵 Amount: ${trade_amount:.2f}\n"
+                f"📈 Price: ${price:.6f}\n"
+                f"🔢 Quantity: {qty:.6f}\n"
+                f"💼 Remaining USDC: ${balance['usd']:.2f}"
+            ))
+        except Exception as e:
+            print(f"[ALERT ERROR] Could not send investment alert: {e}")
+        
         return positions[symbol]
     except BinanceAPIException as e:
         print(f"[BUY ERROR] {symbol}: {e}")
@@ -578,21 +593,41 @@ def auto_sell_momentum_positions(min_profit=MIN_PROFIT, trailing_stop=TRAIL_STOP
 
             if should_sell:
                 exit_price, fee, _ = sell(symbol, qty)
-                exit_time = time.time()
-                tax = estimate_trade_tax(entry, exit_price, qty, trade_time, exit_time)
-                log_trade(
-                    symbol=symbol,
-                    entry=entry,
-                    exit_price=exit_price,
-                    qty=qty,
-                    trade_time=trade_time,
-                    exit_time=exit_time,
-                    fees=fee,
-                    tax=tax,
-                    action="sell"
-                )
-                print(f"[MOMENTUM SELL] {symbol}: {reason}")
-                del positions[symbol]
+                if exit_price is not None:
+                    exit_time = time.time()
+                    tax = estimate_trade_tax(entry, exit_price, qty, trade_time, exit_time)
+                    pnl_dollar = (exit_price - entry) * qty
+                    
+                    log_trade(
+                        symbol=symbol,
+                        entry=entry,
+                        exit_price=exit_price,
+                        qty=qty,
+                        trade_time=trade_time,
+                        exit_time=exit_time,
+                        fees=fee,
+                        tax=tax,
+                        action="sell"
+                    )
+                    
+                    # Send sell alert
+                    import asyncio
+                    try:
+                        asyncio.create_task(send_alarm_message(
+                            f"💸 POSITION SOLD\n\n"
+                            f"📊 {symbol}\n"
+                            f"📉 Entry: ${entry:.6f}\n"
+                            f"📈 Exit: ${exit_price:.6f}\n"
+                            f"🔢 Quantity: {qty:.6f}\n"
+                            f"💰 PnL: ${pnl_dollar:.2f} ({pnl_pct:.2f}%)\n"
+                            f"⏱️ Hold Time: {held_for/60:.1f} min\n"
+                            f"📋 Reason: {reason}"
+                        ))
+                    except Exception as e:
+                        print(f"[ALERT ERROR] Could not send sell alert: {e}")
+                    
+                    print(f"[MOMENTUM SELL] {symbol}: {reason}")
+                    del positions[symbol]
         except Exception as e:
             print(f"[AUTO-SELL ERROR] {symbol}: {e}")
 
@@ -1461,6 +1496,8 @@ async def check_and_alarm_high_volume(context=None):
     if not stats:
         return
     alarmed = []
+    full_momentum_alerts = []
+    
     for symbol, s in stats.items():
         vol = s.get("volume_1d", 0) or 0
         if vol > MIN_VOLUME:
@@ -1471,18 +1508,42 @@ async def check_and_alarm_high_volume(context=None):
             m5, ind5 = check_advanced_momentum(symbol, '5m',  d5)
             m15,ind15= check_advanced_momentum(symbol, '15m', d15)
 
-            pct1  = ind1.get('pct_change', 0) if ind1 else 0
-            pct5  = ind5.get('pct_change', 0) if ind5 else 0
-            pct15 = ind15.get('pct_change', 0) if ind15 else 0
+            # Count momentum stages met
+            momentum_count = sum([m1, m5, m15])
+            
+            # Full momentum alert (all 3 stages)
+            if momentum_count == 3:
+                pct1  = ind1.get('pct_change', 0) if ind1 else 0
+                pct5  = ind5.get('pct_change', 0) if ind5 else 0
+                pct15 = ind15.get('pct_change', 0) if ind15 else 0
+                
+                full_momentum_alerts.append((symbol, vol, pct1, pct5, pct15, d1, d5, d15))
+            
+            # Partial momentum alert (2 out of 3 stages)
+            elif momentum_count >= 2:
+                pct1  = ind1.get('pct_change', 0) if ind1 else 0
+                pct5  = ind5.get('pct_change', 0) if ind5 else 0
+                pct15 = ind15.get('pct_change', 0) if ind15 else 0
 
-            diff1  = (d1*100)  - pct1
-            diff5  = (d5*100)  - pct5
-            diff15 = (d15*100) - pct15
+                diff1  = (d1*100)  - pct1
+                diff5  = (d5*100)  - pct5
+                diff15 = (d15*100) - pct15
 
-            alarmed.append((symbol, vol, m1, m5, m15, pct1, pct5, pct15, diff1, diff5, diff15, d1, d5, d15))
+                alarmed.append((symbol, vol, m1, m5, m15, pct1, pct5, pct15, diff1, diff5, diff15, d1, d5, d15))
 
+    # Send full momentum alerts first (highest priority)
+    if full_momentum_alerts:
+        msg = "🚀 FULL MOMENTUM ALERT - ALL 3 STAGES MET! 🚀\n\n"
+        for (symbol, vol, pct1, pct5, pct15, d1, d5, d15) in full_momentum_alerts:
+            msg += f"🎯 {symbol}: Volume = {vol:,.0f}\n"
+            msg += f"  1m: ✅ {pct1:.2f}%  (Target {d1*100:.2f}%)\n"
+            msg += f"  5m: ✅ {pct5:.2f}%  (Target {d5*100:.2f}%)\n"
+            msg += f" 15m: ✅ {pct15:.2f}% (Target {d15*100:.2f}%)\n\n"
+        await send_alarm_message(msg)
+
+    # Send partial momentum alerts (2/3 stages)
     if alarmed:
-        msg = "🚨 High Volume Alert (dynamic thresholds):\n\n"
+        msg = "🚨 High Volume Alert (2/3 momentum stages reached):\n\n"
         for (symbol, vol, m1, m5, m15, pct1, pct5, pct15, diff1, diff5, diff15, d1, d5, d15) in alarmed:
             msg += f"📊 {symbol}: Volume = {vol:,.0f}\n"
             msg += f"  1m: {'✅' if m1 else '❌'} {pct1:.2f}%  (Target {d1*100:.2f}%, need {max(0,diff1):.2f}%)\n"
@@ -1501,6 +1562,30 @@ if __name__ == "__main__":
     positions.update(rebuild_cost_basis(trade_log))
     reconcile_positions_with_binance(client, positions)
     print(f"[INFO] Bot paused state on startup: {is_paused()}")
+    
+    # Send startup alert
+    import asyncio
+    try:
+        async def send_startup_alert():
+            fetch_usdc_balance()
+            total_positions = len([p for p in positions.items() if get_latest_price(p[0]) and p[1]['qty'] * get_latest_price(p[0]) > DUST_LIMIT])
+            
+            await send_alarm_message(
+                f"🤖 BOT STARTED\n\n"
+                f"✅ System initialized successfully\n"
+                f"💰 USDC Balance: ${balance['usd']:.2f}\n"
+                f"📊 Active Positions: {total_positions}\n"
+                f"⏸️ Trading Status: {'PAUSED' if is_paused() else 'ACTIVE'}\n"
+                f"🕐 Startup Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(send_startup_alert())
+        loop.close()
+    except Exception as e:
+        print(f"[ALERT ERROR] Could not send startup alert: {e}")
+    
     try:
         trading_thread = threading.Thread(target=trading_loop, daemon=True)
         trading_thread.start()
