@@ -101,12 +101,12 @@ def fetch_symbol_data(client, symbol_info, cg_entry):
         return None
 
 def update_btc_eth_pairs(client):
-    target_symbols = ['BTCUSDT', 'ETHUSDT']
+    target_symbols = ['BTCUSDC', 'ETHUSDC']
     data = {}
-    print(f"\n[{datetime.now()}] Fetching BTCUSDT / ETHUSDT ...")
+    print(f"\n[{datetime.now()}] Fetching BTCUSDC / ETHUSDC ...")
 
     for symbol in target_symbols:
-        base_asset = symbol.replace("USDT", "")
+        base_asset = symbol.replace("USDC", "")
         cg_mapping = build_coingecko_mapping([base_asset])
         cg_entry = {}
         if cg_mapping:
@@ -116,7 +116,7 @@ def update_btc_eth_pairs(client):
         symbol_info = {
             'symbol': symbol,
             'baseAsset': base_asset,
-            'quoteAsset': 'USDT',
+            'quoteAsset': 'USDC',
             'status': 'TRADING'
         }
         symbol_data = fetch_symbol_data(client, symbol_info, cg_entry)
