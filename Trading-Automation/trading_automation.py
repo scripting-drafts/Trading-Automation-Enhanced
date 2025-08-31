@@ -422,6 +422,24 @@ def telegram_main():
     # Add periodic alarm job (every 5 minutes)
     application.job_queue.run_repeating(alarm_job, interval=300, first=10)
 
+    # Send startup alert using post_init hook to avoid scheduling issues
+    async def post_init(application):
+        try:
+            fetch_usdc_balance()
+            total_positions = len([p for p in positions.items() if get_latest_price(p[0]) and p[1]['qty'] * get_latest_price(p[0]) > DUST_LIMIT])
+            
+            await send_alarm_message(
+                f"🤖 BOT STARTED\n\n"
+                f"✅ System initialized successfully\n"
+                f"💰 USDC Balance: ${balance['usd']:.2f}\n"
+                f"📊 Active Positions: {total_positions}\n"
+                f"⏸️ Trading Status: {'PAUSED' if is_paused() else 'ACTIVE'}\n"
+                f"🕐 Startup Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+        except Exception as e:
+            print(f"[ALERT ERROR] Could not send startup alert: {e}")
+    
+    application.post_init = post_init
     application.run_polling()
 
 
@@ -1040,7 +1058,6 @@ def dynamic_momentum_set(symbol):
     Produce per-interval dynamic thresholds tuned for micro-scalping.
     We make shorter TFs a bit more sensitive (lower k), longer TFs stricter (higher k).
     """
-    # You can tweak these multipliers & floors per your fills/slippage stats
     thr_1m  = dynamic_momentum_threshold(symbol, '1m',  lookback=60,  k=0.55, floor_=0.0007, cap_=0.015)
     thr_5m  = dynamic_momentum_threshold(symbol, '5m',  lookback=48,  k=0.70, floor_=0.0010, cap_=0.018)
     thr_15m = dynamic_momentum_threshold(symbol, '15m', lookback=48,  k=0.85, floor_=0.0015, cap_=0.020)
@@ -1562,29 +1579,6 @@ if __name__ == "__main__":
     positions.update(rebuild_cost_basis(trade_log))
     reconcile_positions_with_binance(client, positions)
     print(f"[INFO] Bot paused state on startup: {is_paused()}")
-    
-    # Send startup alert
-    import asyncio
-    try:
-        async def send_startup_alert():
-            fetch_usdc_balance()
-            total_positions = len([p for p in positions.items() if get_latest_price(p[0]) and p[1]['qty'] * get_latest_price(p[0]) > DUST_LIMIT])
-            
-            await send_alarm_message(
-                f"🤖 BOT STARTED\n\n"
-                f"✅ System initialized successfully\n"
-                f"💰 USDC Balance: ${balance['usd']:.2f}\n"
-                f"📊 Active Positions: {total_positions}\n"
-                f"⏸️ Trading Status: {'PAUSED' if is_paused() else 'ACTIVE'}\n"
-                f"🕐 Startup Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-            )
-        
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(send_startup_alert())
-        loop.close()
-    except Exception as e:
-        print(f"[ALERT ERROR] Could not send startup alert: {e}")
     
     try:
         trading_thread = threading.Thread(target=trading_loop, daemon=True)
