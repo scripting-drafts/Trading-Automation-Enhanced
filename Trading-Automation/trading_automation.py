@@ -939,6 +939,29 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         else:
             await send_with_keyboard(update, f"```\nSymbol Debug Info:\n{debug_text}\n```", parse_mode='Markdown')
     
+    elif text == "⚡ Fast Check":
+        await send_with_keyboard(update, "⚡ Running fast momentum check for immediate opportunities...")
+        
+        try:
+            fetch_usdc_balance()
+            investable = balance['usd'] - sum(float(tr.get('Tax', 0)) for tr in trade_log[-20:] if float(tr.get('Tax', 0)) > 0)
+            
+            if investable < 10:
+                await send_with_keyboard(update, "❌ Not enough USDC for fast investment check")
+                return
+                
+            # Run fast momentum check
+            start_time = time.time()
+            fast_momentum_invest(investable)
+            end_time = time.time()
+            
+            processing_time = end_time - start_time
+            await send_with_keyboard(update, 
+                f"✅ Fast momentum check completed in {processing_time:.2f} seconds\n"
+                f"💰 Checked ${investable:.2f} USDC for immediate opportunities")
+        except Exception as e:
+            await send_with_keyboard(update, f"❌ Fast check failed: {str(e)}")
+    
     else:
         await send_with_keyboard(update, "Unknown action.")
 
@@ -982,7 +1005,8 @@ main_keyboard = [
     ["⏸ Pause Trading", "▶️ Resume Trading"],
     ["📝 Trade Log", "🔍 Diagnose"],
     ["🔄 WebSocket Status", "⚡ Check Momentum"],
-    ["🔍 Debug Symbols", "📈 Status"]
+    ["🔍 Debug Symbols", "⚡ Fast Check"],
+    ["📈 Status"]
 ]
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1012,11 +1036,11 @@ def telegram_main():
     application.add_handler(CommandHandler('start', start_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, telegram_handle_message))
 
-    # Add periodic alarm job with more conservative timing to avoid trading loop conflicts
+    # Add periodic alarm job with faster momentum checking
     application.job_queue.run_repeating(
         alarm_job, 
-        interval=360,  # 6 minutes instead of 5 to reduce conflicts
-        first=30,      # First run after 30 seconds to let trading loop start
+        interval=120,  # 2 minutes instead of 6 for faster response
+        first=15,      # First run after 15 seconds for quicker startup
         name="momentum_checker"
     )
 
@@ -1446,15 +1470,81 @@ def reserve_taxes_and_reinvest():
         print("[TAXES] Not enough USDC to invest after reserving for taxes.")
         return
 
-    invest_momentum_with_usdc_limit(investable_usdc)
+    # FAST CHECK: Look for immediate momentum opportunities
+    fast_momentum_invest(investable_usdc)
+
+def fast_momentum_invest(usdc_limit):
+    """
+    Fast momentum check that runs investment logic immediately when strong signals are detected.
+    This bypasses the normal periodic checks for ultra-fast response.
+    """
+    print(f"[FAST CHECK] Looking for immediate momentum opportunities with ${usdc_limit:.2f}")
+    
+    symbols = get_yaml_ranked_momentum(limit=5)  # Check top 5 instead of 10 for speed
+    
+    for symbol in symbols:
+        try:
+            # Quick momentum check
+            d1, d5, d15 = dynamic_momentum_set(symbol)
+            if not has_recent_momentum(symbol, d1, d5, d15):
+                continue
+                
+            # Fast tradability check
+            ok, reason, diag = guard_tradability(symbol, side="BUY")
+            if not ok:
+                print(f"[FAST SKIP] {symbol}: {reason}")
+                continue
+                
+            # Check if we have enough funds
+            min_notional = min_notional_for(symbol)
+            if usdc_limit < min_notional:
+                print(f"[FAST SKIP] {symbol}: Need ${min_notional:.2f}, have ${usdc_limit:.2f}")
+                break
+                
+            # Execute immediate buy
+            print(f"[FAST BUY] {symbol}: Strong momentum detected, buying immediately!")
+            result = buy(symbol, amount=min_notional)
+            
+            if result:
+                usdc_limit -= min_notional
+                print(f"[FAST SUCCESS] {symbol}: Bought ${min_notional:.2f}, remaining: ${usdc_limit:.2f}")
+                
+                # Send fast alert
+                try:
+                    asyncio.create_task(send_alarm_message(
+                        f"⚡ FAST MOMENTUM BUY ⚡\n\n"
+                        f"📊 {symbol}\n"
+                        f"💵 Amount: ${min_notional:.2f}\n"
+                        f"🚀 Reason: Strong 3-timeframe momentum\n"
+                        f"⏱️ Response: Ultra-fast execution"
+                    ))
+                except Exception as e:
+                    print(f"[FAST ALERT ERROR] {e}")
+            else:
+                print(f"[FAST FAIL] {symbol}: Buy failed")
+                
+        except Exception as e:
+            print(f"[FAST ERROR] {symbol}: {e}")
+            continue
+    
+    # If we still have funds, run normal investment logic
+    if usdc_limit >= 10:
+        invest_momentum_with_usdc_limit(usdc_limit)
 
 def load_symbol_stats():
+    """Load symbol statistics from YAML file, filtered to allowed symbols only."""
     try:
         with open(YAML_SYMBOLS_FILE, "r") as f:
-            return yaml.safe_load(f)
+            all_stats = yaml.safe_load(f)
+            # Filter to only allowed symbols
+            filtered_stats = {k: v for k, v in all_stats.items() if k in ALLOWED_SYMBOLS}
+            print(f"[YAML] Loaded {len(filtered_stats)} allowed symbols from {len(all_stats)} total")
+            return filtered_stats
     except Exception as e:
         print(f"[YAML ERROR] Could not read {YAML_SYMBOLS_FILE}: {e}")
-        return {}
+        # Return minimal stats for allowed symbols if YAML fails
+        return {symbol: {"market_cap": 1000000, "volume_1d": 1000000, "volatility": {"1d": 0.01}} 
+                for symbol in ALLOWED_SYMBOLS}
     
 def pct_change(klines):
     if len(klines) < 2: return 0
@@ -1653,17 +1743,17 @@ def dynamic_momentum_threshold(symbol, interval='1m', lookback=60,
 
 def dynamic_momentum_set(symbol):
     """
-    Produce per-interval dynamic thresholds tuned for micro-scalping.
-    We make shorter TFs a bit more sensitive (lower k), longer TFs stricter (higher k).
+    Produce per-interval dynamic thresholds tuned for faster micro-scalping.
+    We make shorter TFs more sensitive (lower k), longer TFs slightly stricter.
     """
-    thr_1m  = dynamic_momentum_threshold(symbol, '1m',  lookback=60,  k=0.55, floor_=0.0007, cap_=0.015)
-    thr_5m  = dynamic_momentum_threshold(symbol, '5m',  lookback=48,  k=0.70, floor_=0.0010, cap_=0.018)
-    thr_15m = dynamic_momentum_threshold(symbol, '15m', lookback=48,  k=0.85, floor_=0.0015, cap_=0.020)
+    thr_1m  = dynamic_momentum_threshold(symbol, '1m',  lookback=60,  k=0.35, floor_=0.0005, cap_=0.012)  # More sensitive
+    thr_5m  = dynamic_momentum_threshold(symbol, '5m',  lookback=48,  k=0.50, floor_=0.0008, cap_=0.015)  # More sensitive
+    thr_15m = dynamic_momentum_threshold(symbol, '15m', lookback=48,  k=0.65, floor_=0.0012, cap_=0.018)  # More sensitive
     return thr_1m, thr_5m, thr_15m
 
 
 def has_recent_momentum(symbol, min_1m=None, min_5m=None, min_15m=None):
-    """Enhanced momentum detection using multiple indicators with dynamic thresholds."""
+    """Enhanced momentum detection using multiple indicators with faster scoring system."""
     try:
         # derive dynamic thresholds if not provided
         if min_1m is None or min_5m is None or min_15m is None:
@@ -1685,8 +1775,39 @@ def has_recent_momentum(symbol, min_1m=None, min_5m=None, min_15m=None):
               f"RSI: {indicators_15m.get('rsi', 0):.1f} Vol: {indicators_15m.get('volume_spike', False)} "
               f"MA: {indicators_15m.get('ma_cross', False)}")
 
-        # Keep your strong confirmation rule (all TFs) for now; you can relax if fills are sparse
-        return momentum_1m and momentum_5m and momentum_15m
+        # NEW: Weighted scoring system for faster entry
+        # Score each timeframe (0-3 points each)
+        score_1m = sum([
+            indicators_1m.get('price_momentum', False),  # 1 point
+            indicators_1m.get('volume_spike', False),    # 1 point  
+            indicators_1m.get('rsi_momentum', False) or indicators_1m.get('ma_cross', False)  # 1 point
+        ])
+        
+        score_5m = sum([
+            indicators_5m.get('price_momentum', False),  # 1 point
+            indicators_5m.get('volume_spike', False),    # 1 point
+            indicators_5m.get('rsi_momentum', False) or indicators_5m.get('ma_cross', False)  # 1 point
+        ])
+        
+        score_15m = sum([
+            indicators_15m.get('price_momentum', False), # 1 point
+            indicators_15m.get('volume_spike', False),   # 1 point
+            indicators_15m.get('rsi_momentum', False) or indicators_15m.get('ma_cross', False)  # 1 point
+        ])
+        
+        total_score = score_1m + score_5m + score_15m
+        
+        print(f"[MOMENTUM SCORE] {symbol}: 1m={score_1m}/3, 5m={score_5m}/3, 15m={score_15m}/3, Total={total_score}/9")
+        
+        # FAST MODE: Require at least 6/9 points with 1m showing strong signal
+        # This allows investment when momentum is building, not just when perfect
+        fast_entry = (total_score >= 6 and score_1m >= 2)
+        
+        # CONSERVATIVE MODE: Original requirement (all timeframes perfect)
+        conservative_entry = momentum_1m and momentum_5m and momentum_15m
+        
+        # Use FAST MODE for quicker entries
+        return fast_entry
 
     except Exception as e:
         print(f"[MOMENTUM ERROR] {symbol}: {e}")
@@ -1777,17 +1898,13 @@ def get_yaml_ranked_momentum(
     )
     return [x["symbol"] for x in ranked[:limit]]
 
-def refresh_symbols():
-    global SYMBOLS
-    SYMBOLS = get_yaml_ranked_momentum(limit=10)
-
 def invest_momentum_with_usdc_limit(usdc_limit):
     """
     Invest in as many eligible momentum symbols as possible, always using the min_notional per symbol,
     never all-or-nothing. Any remaining funds are left in USDC.
     This version treats coins you own (including dust) and coins you don't equally.
     """
-    refresh_symbols()
+    # Get symbols directly without redundant refresh_symbols() call
     symbols = get_yaml_ranked_momentum(limit=10)
     print(f"[DEBUG] Momentum symbols eligible for investment: {symbols}")
     if not symbols:
@@ -2045,8 +2162,8 @@ def process_actions():
 def trading_loop():
     last_sync = time.time()
     last_websocket_update = time.time()
-    SYNC_INTERVAL = 240  # Increased from 180 to 240 seconds (4 minutes)
-    WEBSOCKET_UPDATE_INTERVAL = 600  # Increased to 10 minutes
+    SYNC_INTERVAL = 60   # Reduced from 240 to 60 seconds (1 minute) for faster response
+    WEBSOCKET_UPDATE_INTERVAL = 300  # Reduced to 5 minutes
 
     # Initialize WebSocket monitoring
     initialize_websocket_monitoring()
@@ -2410,7 +2527,8 @@ if __name__ == "__main__":
     # Add performance monitoring to reduce scheduler warning noise
     add_performance_monitoring()
     
-    refresh_symbols()
+    # Load trade history and rebuild positions - no need for refresh_symbols() 
+    # since get_yaml_ranked_momentum() loads symbols dynamically when needed
     trade_log = load_trade_history()
     positions.clear()
     positions.update(rebuild_cost_basis(trade_log))
