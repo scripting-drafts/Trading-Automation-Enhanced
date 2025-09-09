@@ -546,53 +546,24 @@ def add_performance_monitoring():
 # Add strict symbol filtering
 ALLOWED_SYMBOLS = {'BTCUSDC', 'ETHUSDC'}
 
-def debug_symbol_sources():
-    """Debug function to see where symbols are coming from"""
-    print("=== SYMBOL SOURCE DEBUGGING ===")
-    
-    # Check YAML file
-    yaml_symbols = []
-    if os.path.exists(YAML_SYMBOLS_FILE):
-        try:
-            with open(YAML_SYMBOLS_FILE, 'r') as f:
-                yaml_data = yaml.safe_load(f)
-                yaml_symbols = list(yaml_data.keys()) if yaml_data else []
-                print(f"YAML symbols: {yaml_symbols}")
-        except Exception as e:
-            print(f"Error reading YAML: {e}")
-    
-    # Check current positions
-    position_symbols = list(positions.keys())
-    print(f"Position symbols: {position_symbols}")
-    
-    # Check WebSocket manager
-    websocket_symbols = []
-    if ws_price_manager:
-        websocket_symbols = ws_price_manager.get_monitored_symbols()
-        print(f"WebSocket monitoring: {websocket_symbols}")
-    
-    # Check price cache
-    with price_cache_lock:
-        cached_symbols = list(price_cache.keys())
-        print(f"Price cache symbols: {cached_symbols}")
-    
-    # Check if get_ticker() calls are fetching all symbols
-    try:
-        print("Checking if any functions call get_ticker() for all symbols...")
-        # This would show ALL USDC symbols available on Binance
-        all_tickers = client.get_ticker()
-        usdc_tickers = [t['symbol'] for t in all_tickers if t['symbol'].endswith('USDC')]
-        print(f"Total USDC symbols on Binance: {len(usdc_tickers)}")
-        print(f"Sample USDC symbols: {usdc_tickers[:10]}")
-    except Exception as e:
-        print(f"Error checking tickers: {e}")
-    
-    return {
-        'yaml': yaml_symbols,
-        'positions': position_symbols,
-        'websocket': websocket_symbols,
-        'cached': cached_symbols
+def get_trading_status():
+    """Get current trading status summary"""
+    status = {
+        'allowed_symbols': list(ALLOWED_SYMBOLS),
+        'positions': list(positions.keys()),
+        'websocket_monitoring': ws_price_manager.get_monitored_symbols() if ws_price_manager else [],
+        'balance_usd': balance.get('usd', 0),
+        'total_positions': len(positions)
     }
+    
+    print("=== TRADING STATUS ===")
+    print(f"Allowed symbols: {status['allowed_symbols']}")
+    print(f"Current positions: {status['positions']}")
+    print(f"WebSocket monitoring: {status['websocket_monitoring']}")
+    print(f"USD balance: ${status['balance_usd']:.2f}")
+    print(f"Total positions: {status['total_positions']}")
+    
+    return status
 
 def filter_to_allowed_symbols(symbols):
     """Filter symbols to only allowed ones"""
@@ -914,8 +885,8 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         except Exception as e:
             await send_with_keyboard(update, f"❌ Momentum check failed: {str(e)}")
     
-    elif text == "🔍 Debug Symbols":
-        await send_with_keyboard(update, "🔍 Running symbol source debugging...")
+    elif text == "� Trading Status":
+        await send_with_keyboard(update, "� Getting trading status...")
         
         # Capture debug output
         import io
@@ -925,7 +896,7 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         sys.stdout = captured_output = io.StringIO()
         
         try:
-            debug_info = debug_symbol_sources()
+            status_info = get_trading_status()
             debug_text = captured_output.getvalue()
         finally:
             sys.stdout = old_stdout
@@ -935,9 +906,9 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
             # Split long messages
             chunks = [debug_text[i:i+4000] for i in range(0, len(debug_text), 4000)]
             for i, chunk in enumerate(chunks):
-                await send_with_keyboard(update, f"```\nDebug Info ({i+1}/{len(chunks)}):\n{chunk}\n```", parse_mode='Markdown')
+                await send_with_keyboard(update, f"```\nTrading Status ({i+1}/{len(chunks)}):\n{chunk}\n```", parse_mode='Markdown')
         else:
-            await send_with_keyboard(update, f"```\nSymbol Debug Info:\n{debug_text}\n```", parse_mode='Markdown')
+            await send_with_keyboard(update, f"```\nTrading Status:\n{debug_text}\n```", parse_mode='Markdown')
     
     elif text == "⚡ Fast Check":
         await send_with_keyboard(update, "⚡ Running fast momentum check for immediate opportunities...")
@@ -1005,7 +976,7 @@ main_keyboard = [
     ["⏸ Pause Trading", "▶️ Resume Trading"],
     ["📝 Trade Log", "🔍 Diagnose"],
     ["🔄 WebSocket Status", "⚡ Check Momentum"],
-    ["🔍 Debug Symbols", "⚡ Fast Check"],
+    ["� Trading Status", "⚡ Fast Check"],
     ["📈 Status"]
 ]
 
