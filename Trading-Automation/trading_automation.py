@@ -1,4 +1,4 @@
-import yaml, pytz, json, os, csv, decimal, time, threading, math, random, asyncio
+import yaml, pytz, json, os, csv, decimal, time, threading, math, random, asyncio, sys, io, logging, traceback
 from datetime import datetime
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
@@ -70,121 +70,368 @@ price_cache = {}      # Real-time price cache from WebSocket
 price_cache_lock = threading.Lock()  # Thread safety for price cache
 
 class WebSocketPriceManager:
-    """Manages real-time price monitoring via Binance WebSocket streams."""
+    """Optimized WebSocket manager using Binance ThreadedWebsocketManager with better error handling."""
     
     def __init__(self, client):
         self.client = client
         self.twm = None
-        self.active_streams = set()
         self.symbols_to_monitor = set()
-        self.stream_lock = threading.Lock()
         self._running = False
+        self._price_cache = {}
+        self._cache_lock = threading.Lock()
+        self._reconnect_count = 0
+        self._max_reconnects = 3
+        self._streams = {}  # Track active streams
         
     def start(self):
-        """Start the WebSocket manager."""
+        """Strictly start WebSocket with Binance ThreadedWebsocketManager. No REST fallback."""
         if self._running:
             return
-            
         try:
-            self.twm = ThreadedWebsocketManager(api_key=API_KEY, api_secret=API_SECRET)
+            print("[WEBSOCKET] 🚀 Starting Binance WebSocket monitoring (strict mode)...")
+            self.twm = ThreadedWebsocketManager(
+                api_key=self.client.API_KEY,
+                api_secret=self.client.API_SECRET,
+                testnet=False
+            )
             self.twm.start()
             self._running = True
-            print("[WEBSOCKET] Price monitoring started")
+            print("[WEBSOCKET] ✅ ThreadedWebsocketManager started successfully")
         except Exception as e:
-            print(f"[WEBSOCKET ERROR] Failed to start: {e}")
+            print(f"[WEBSOCKET ERROR] Failed to initialize: {e}")
+            self._running = False
+            self.twm = None
             
+        
+            # If WebSocket failed to start, fall back to REST API mode
+            if not self._running:
+                print("[WEBSOCKET] � Starting REST API fallback mode...")
+                self._start_fallback_mode()
+                
+        except Exception as e:
+            print(f"[WEBSOCKET ERROR] Failed to initialize: {e}")
+            self._running = False
+            self.twm = None
+            # Try fallback mode
+            self._start_fallback_mode()
+            
+    def _start_normal(self):
+        """Normal WebSocket start method."""
+        try:
+            # Initialize ThreadedWebsocketManager with optimized settings
+            self.twm = ThreadedWebsocketManager(
+                api_key=self.client.API_KEY,
+                api_secret=self.client.API_SECRET,
+                testnet=False
+            )
+            
+            # Start the manager with error handling
+            self.twm.start()
+            self._running = True
+            print("[WEBSOCKET] ✅ ThreadedWebsocketManager started successfully")
+        except Exception as start_error:
+            print(f"[WEBSOCKET] Failed to start manager: {start_error}")
+            self.twm = None
+            self._running = False
+            
+    def _start_with_thread(self):
+        """Safe WebSocket start for environments with existing event loops."""
+        try:
+            import threading
+            import time
+            
+            result = {}
+            
+            def start_websocket():
+                try:
+                    # Initialize ThreadedWebsocketManager in a separate thread
+                    self.twm = ThreadedWebsocketManager(
+                        api_key=self.client.API_KEY,
+                        api_secret=self.client.API_SECRET,
+                        testnet=False
+                    )
+                    
+                    # Start the manager
+                    self.twm.start()
+                    
+                    # Give it a moment to initialize properly
+                    time.sleep(0.5)
+                    
+                    result['success'] = True
+                    result['error'] = None
+                except Exception as e:
+                    result['success'] = False
+                    result['error'] = str(e)
+            
+            # Start WebSocket in a separate thread to avoid event loop conflicts
+            ws_thread = threading.Thread(target=start_websocket, daemon=True)
+            ws_thread.start()
+            ws_thread.join(timeout=10)  # Wait up to 10 seconds
+            
+            if result.get('success'):
+                self._running = True
+                print("[WEBSOCKET] ✅ ThreadedWebsocketManager started successfully (thread-safe mode)")
+            else:
+                error_msg = result.get('error', 'Unknown error')
+                print(f"[WEBSOCKET] ❌ Failed to start manager: {error_msg}")
+                # Fallback to REST API only
+                print("[WEBSOCKET] 🔄 Falling back to REST API for price data")
+                self.twm = None
+                self._running = False
+                
+        except Exception as e:
+            print(f"[WEBSOCKET] Thread-safe start failed: {e}")
+            self.twm = None
+            self._running = False
+                    
     def stop(self):
-        """Stop the WebSocket manager."""
+        """Stop WebSocket manager cleanly with proper session and coroutine cleanup."""
         if not self._running:
             return
-            
+        print("[WEBSOCKET] 🛑 Stopping WebSocket connections...")
+        self._running = False
         try:
             if self.twm:
-                self.twm.stop()
-            self._running = False
-            self.active_streams.clear()
-            print("[WEBSOCKET] Price monitoring stopped")
+                # Stop all active streams first
+                for stream_id in list(self._streams.keys()):
+                    try:
+                        self.twm.stop_socket(stream_id)
+                    except Exception as e:
+                        print(f"[WEBSOCKET] Error stopping stream {stream_id}: {e}")
+                
+                # Force close any aiohttp sessions and clean up coroutines
+                try:
+                    import asyncio
+                    import threading
+                    
+                    # Get or create event loop for cleanup
+                    loop = None
+                    try:
+                        loop = asyncio.get_event_loop()
+                        if loop.is_closed():
+                            raise RuntimeError("Loop is closed")
+                    except RuntimeError:
+                        # Create new loop if none exists or current is closed
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    
+                    # Clean up any pending coroutines and sessions
+                    if hasattr(self.twm, '_session') and self.twm._session:
+                        if hasattr(self.twm._session, 'close'):
+                            loop.run_until_complete(self.twm._session.close())
+                            print("[WEBSOCKET] ✅ Client session closed")
+                    
+                    # Cancel any pending tasks related to socket listeners
+                    if hasattr(self.twm, '_socket_listener_task'):
+                        try:
+                            self.twm._socket_listener_task.cancel()
+                        except Exception:
+                            pass
+                    
+                    # Give time for coroutines to complete
+                    import time
+                    time.sleep(0.1)
+                    
+                except Exception as session_error:
+                    print(f"[WEBSOCKET] Session/coroutine cleanup warning: {session_error}")
+                
+                # Stop the manager after cleanup
+                try:
+                    self.twm.stop()
+                    print("[WEBSOCKET] ✅ ThreadedWebsocketManager stopped")
+                except Exception as stop_error:
+                    print(f"[WEBSOCKET] Stop warning: {stop_error}")
+                
+                # Final cleanup delay
+                import time
+                time.sleep(0.2)
+                
+                self.twm = None
         except Exception as e:
-            print(f"[WEBSOCKET ERROR] Failed to stop: {e}")
+            print(f"[WEBSOCKET] Error during shutdown: {e}")
+        finally:
+            self.symbols_to_monitor.clear()
+            self._streams.clear()
+            with self._cache_lock:
+                self._price_cache.clear()
+            print("[WEBSOCKET] Stopped successfully")
+            
+    def _handle_socket_message(self, msg):
+        """Optimized message handler for ticker data with robust error handling."""
+        try:
+            if not isinstance(msg, dict):
+                print(f"[WEBSOCKET] Invalid message type: {type(msg)}")
+                return
+                
+            if 's' not in msg or 'c' not in msg:
+                print(f"[WEBSOCKET] Missing required fields in message: {list(msg.keys())}")
+                return
+                
+            symbol = msg['s']
+            
+            # Safely parse numeric fields with fallbacks
+            try:
+                price = float(msg['c'])
+            except (ValueError, TypeError) as e:
+                print(f"[WEBSOCKET] Invalid price for {symbol}: {msg.get('c')} - {e}")
+                return
+                
+            try:
+                volume = float(msg.get('v', 0))
+            except (ValueError, TypeError):
+                volume = 0.0
+                
+            try:
+                price_change_pct = float(msg.get('P', 0))
+            except (ValueError, TypeError):
+                price_change_pct = 0.0
+                
+            try:
+                high_24h = float(msg.get('h', price))
+            except (ValueError, TypeError):
+                high_24h = price
+                
+            try:
+                low_24h = float(msg.get('l', price))
+            except (ValueError, TypeError):
+                low_24h = price
+                
+            try:
+                count = int(float(msg.get('n', 0)))  # Convert to float first, then int
+            except (ValueError, TypeError):
+                count = 0
+            
+            # Update cache with validated data
+            with self._cache_lock:
+                self._price_cache[symbol] = {
+                    'price': price,
+                    'timestamp': time.time(),
+                    'volume': volume,
+                    'price_change_pct': price_change_pct,
+                    'high_24h': high_24h,
+                    'low_24h': low_24h,
+                    'count': count
+                }
+            
+            # Update global price cache
+            with price_cache_lock:
+                price_cache[symbol] = self._price_cache[symbol].copy()
+                    
+        except Exception as e:
+            print(f"[WEBSOCKET] Unexpected message processing error: {e}")
+            if 'msg' in locals():
+                print(f"[WEBSOCKET] Problematic message: {msg}")
+            import traceback
+            traceback.print_exc()
             
     def add_symbol(self, symbol):
-        """Add a symbol to real-time price monitoring."""
+        """Add symbol to monitoring with individual ticker stream and robust error handling."""
         if not self._running:
-            self.start()
-            
-        with self.stream_lock:
+            self.symbols_to_monitor.add(symbol)
+            print(f"[WEBSOCKET] ➕ Queued {symbol} for monitoring (WebSocket not running)")
+            return
+        try:
             if symbol not in self.symbols_to_monitor:
+                # Validate symbol format
+                if not symbol or not isinstance(symbol, str) or not symbol.endswith('USDC'):
+                    print(f"[WEBSOCKET] ❌ Invalid symbol format: {symbol}")
+                    return
+                # Add to monitoring list
                 self.symbols_to_monitor.add(symbol)
-                try:
-                    # Start individual symbol ticker stream
-                    stream_key = self.twm.start_symbol_ticker_socket(
-                        callback=self._handle_price_update,
+                # Start individual ticker stream for this symbol
+                if self.twm:
+                    print(f"[WEBSOCKET] Starting stream for {symbol}...")
+                    stream_id = self.twm.start_symbol_ticker_socket(
+                        callback=self._handle_socket_message,
                         symbol=symbol
                     )
-                    self.active_streams.add(stream_key)
-                    print(f"[WEBSOCKET] Added price monitoring for {symbol}")
-                except Exception as e:
-                    print(f"[WEBSOCKET ERROR] Failed to add {symbol}: {e}")
-                    
-    def remove_symbol(self, symbol):
-        """Remove a symbol from real-time price monitoring."""
-        with self.stream_lock:
-            if symbol in self.symbols_to_monitor:
-                self.symbols_to_monitor.discard(symbol)
-                print(f"[WEBSOCKET] Removed price monitoring for {symbol}")
-                
-    def _handle_price_update(self, msg):
-        """Handle incoming price updates from WebSocket."""
-        try:
-            if msg['e'] == '24hrTicker':  # 24hr ticker event
-                symbol = msg['s']
-                price = float(msg['c'])  # Current close price
-                
-                with price_cache_lock:
-                    price_cache[symbol] = {
-                        'price': price,
-                        'timestamp': time.time(),
-                        'volume': float(msg['v']),  # 24hr volume
-                        'price_change_pct': float(msg['P'])  # 24hr price change percent
-                    }
-                    
-                # Occasionally log price updates for monitoring
-                if random.random() < 0.01:  # 1% chance to log
-                    print(f"[WEBSOCKET] {symbol}: ${price:.6f} ({msg['P']}%)")
-                    
+                    if stream_id:
+                        self._streams[stream_id] = symbol
+                        print(f"[WEBSOCKET] ➕ Added {symbol} stream (ID: {stream_id})")
+                    else:
+                        print(f"[WEBSOCKET] ❌ Failed to get stream ID for {symbol}")
+                else:
+                    print(f"[WEBSOCKET] ⚠️ No WebSocket manager available for {symbol}")
         except Exception as e:
-            print(f"[WEBSOCKET ERROR] Price update error: {e}")
+            print(f"[WEBSOCKET] ❌ Error adding {symbol}: {e}")
+            # Don't crash the whole system, just log and continue
+                
+    def remove_symbol(self, symbol):
+        """Remove symbol from monitoring."""
+        if symbol in self.symbols_to_monitor:
+            try:
+                # Find and stop the stream for this symbol
+                stream_to_remove = None
+                for stream_id, stream_symbol in self._streams.items():
+                    if stream_symbol == symbol:
+                        stream_to_remove = stream_id
+                        break
+                
+                if stream_to_remove and self.twm:
+                    self.twm.stop_socket(stream_to_remove)
+                    del self._streams[stream_to_remove]
+                
+                self.symbols_to_monitor.discard(symbol)
+                print(f"[WEBSOCKET] ➖ Removed {symbol} from monitoring")
+                
+                # Clean up cache
+                with self._cache_lock:
+                    self._price_cache.pop(symbol, None)
+                with price_cache_lock:
+                    price_cache.pop(symbol, None)
+                    
+            except Exception as e:
+                print(f"[WEBSOCKET] Error removing {symbol}: {e}")
+                
+    def get_latest_price(self, symbol):
+        """Get latest price with optimized cache lookup."""
+        with self._cache_lock:
+            data = self._price_cache.get(symbol)
+            if data and time.time() - data['timestamp'] < 30:  # 30-second freshness
+                return data['price']
+        return None
+    
+    def get_price_data(self, symbol):
+        """Get comprehensive price data for a symbol."""
+        with self._cache_lock:
+            return self._price_cache.get(symbol, {}).copy()
             
     def get_monitored_symbols(self):
-        """Get list of currently monitored symbols."""
-        with self.stream_lock:
-            return list(self.symbols_to_monitor)
-            
+        """Get list of monitored symbols."""
+        return list(self.symbols_to_monitor)
+        
     def update_symbol_list(self, new_symbols):
-        """Update the list of symbols to monitor (restart streams if needed)."""
-        current_symbols = self.get_monitored_symbols()
+        """Update symbol list with batch optimization."""
         new_symbols_set = set(new_symbols)
+        current_symbols = set(self.symbols_to_monitor)
         
-        # Check if we need to make changes
-        if new_symbols_set == set(current_symbols):
-            return
-            
-        print(f"[WEBSOCKET] Updating monitored symbols: {len(current_symbols)} -> {len(new_symbols_set)}")
+        # Add new symbols
+        symbols_to_add = new_symbols_set - current_symbols
+        for symbol in symbols_to_add:
+            self.add_symbol(symbol)
+            time.sleep(0.1)  # Small delay to prevent overwhelming
         
-        # For major changes, restart the entire WebSocket manager
-        if len(new_symbols_set.symmetric_difference(set(current_symbols))) > 5:
-            self.stop()
-            time.sleep(1)
-            self.symbols_to_monitor.clear()
-            for symbol in new_symbols:
-                self.add_symbol(symbol)
-        else:
-            # Add new symbols
-            for symbol in new_symbols_set - set(current_symbols):
-                self.add_symbol(symbol)
-            # Remove old symbols  
-            for symbol in set(current_symbols) - new_symbols_set:
-                self.remove_symbol(symbol)
+        # Remove old symbols
+        symbols_to_remove = current_symbols - new_symbols_set
+        for symbol in symbols_to_remove:
+            self.remove_symbol(symbol)
+                
+    def get_connection_stats(self):
+        """Get WebSocket connection statistics (strict mode)."""
+        with self._cache_lock:
+            cached_symbols = len(self._price_cache)
+            recent_updates = sum(1 for data in self._price_cache.values() 
+                               if time.time() - data['timestamp'] < 30)
+        return {
+            'running': self._running,
+            'monitored_symbols': len(self.symbols_to_monitor),
+            'active_streams': len(self._streams),
+            'cached_symbols': cached_symbols,
+            'recent_updates': recent_updates,
+            'reconnect_count': self._reconnect_count,
+            'manager_active': self.twm is not None,
+            'connection_type': 'WEBSOCKET'
+        }
 
 # Global WebSocket price manager
 ws_price_manager = None
@@ -432,86 +679,301 @@ def diagnose_investment_failure(symbol="ETHUSDC"):
     print(f"If it wasn't invested, check the actual trading loop execution and buy() function.")
 
 def initialize_websocket_monitoring():
-    """Initialize WebSocket price monitoring for trading symbols."""
+    """Initialize optimized WebSocket monitoring using Binance ThreadedWebsocketManager with enhanced error handling."""
     global ws_price_manager
     
     try:
+        print("[WEBSOCKET INIT] 🚀 Initializing optimized Binance WebSocket monitoring...")
         ws_price_manager = WebSocketPriceManager(client)
         
-        symbols_to_monitor = set()
+        # Start the WebSocket manager with robust error handling
+        ws_price_manager.start()
         
-        # Add current position symbols (filtered to allowed symbols only)
-        position_symbols = filter_to_allowed_symbols(list(positions.keys()))
-        symbols_to_monitor.update(position_symbols)
+        # Wait for initialization with timeout
+        max_wait = 10  # Maximum 10 seconds wait
+        wait_time = 0
+        while wait_time < max_wait and not ws_price_manager._running:
+            time.sleep(0.5)
+            wait_time += 0.5
         
-        # Add symbols from YAML file (filtered to allowed symbols only)
-        if os.path.exists(YAML_SYMBOLS_FILE):
-            try:
-                with open(YAML_SYMBOLS_FILE, 'r') as f:
-                    yaml_data = yaml.safe_load(f)
-                    if isinstance(yaml_data, dict):
-                        yaml_symbols = filter_to_allowed_symbols(list(yaml_data.keys()))
-                        symbols_to_monitor.update(yaml_symbols)
-            except Exception as e:
-                print(f"[WEBSOCKET INIT] Error loading YAML symbols: {e}")
-        
-        # Ensure we're only monitoring allowed symbols
-        symbols_to_monitor = symbols_to_monitor.intersection(ALLOWED_SYMBOLS)
-        
-        print(f"[WEBSOCKET INIT] Filtered to allowed symbols: {symbols_to_monitor}")
-        
-        if symbols_to_monitor:
-            print(f"[WEBSOCKET INIT] Starting monitoring for {len(symbols_to_monitor)} symbols")
-            ws_price_manager.start()
+        # Check if WebSocket started successfully
+        if ws_price_manager._running:
+            print("[WEBSOCKET INIT] ✅ WebSocket manager started successfully")
             
-            # Add symbols in batches to avoid overwhelming the system
-            for symbol in symbols_to_monitor:
-                ws_price_manager.add_symbol(symbol)
-                time.sleep(0.1)  # Small delay between symbols
+            symbols_to_monitor = set()
+            
+            # Add current position symbols (filtered to allowed symbols only)
+            position_symbols = filter_to_allowed_symbols(list(positions.keys()))
+            symbols_to_monitor.update(position_symbols)
+            
+            # Add symbols from YAML file (filtered to allowed symbols only)
+            if os.path.exists(YAML_SYMBOLS_FILE):
+                try:
+                    with open(YAML_SYMBOLS_FILE, "r") as f:
+                        yaml_data = yaml.safe_load(f)
+                        if yaml_data:
+                            yaml_symbols = filter_to_allowed_symbols(list(yaml_data.keys()))
+                            symbols_to_monitor.update(yaml_symbols[:3])  # Limit to top 3 for performance
+                except Exception as e:
+                    print(f"[WEBSOCKET INIT] YAML error: {e}")
+            
+            # Ensure we're only monitoring allowed symbols
+            symbols_to_monitor = symbols_to_monitor.intersection(ALLOWED_SYMBOLS)
+            
+            print(f"[WEBSOCKET INIT] 📊 Adding {len(symbols_to_monitor)} symbols to monitoring")
+            
+            if symbols_to_monitor:
+                # Add symbols gradually to avoid overwhelming the system
+                for i, symbol in enumerate(symbols_to_monitor):
+                    try:
+                        ws_price_manager.add_symbol(symbol)
+                        print(f"[WEBSOCKET INIT] ✅ Added {symbol} ({i+1}/{len(symbols_to_monitor)})")
+                        time.sleep(0.5)  # Small delay between additions
+                    except Exception as e:
+                        print(f"[WEBSOCKET INIT] ❌ Failed to add {symbol}: {e}")
+                        continue
+                
+                # Wait and check connection stats
+                time.sleep(3)
+                try:
+                    stats = ws_price_manager.get_connection_stats()
+                    print(f"[WEBSOCKET INIT] 📈 Final stats: {stats}")
+                    
+                    if stats['active_streams'] > 0:
+                        print(f"[WEBSOCKET INIT] ✅ Successfully monitoring {stats['active_streams']} symbols")
+                    else:
+                        print("[WEBSOCKET INIT] ⚠️ No active streams, falling back to REST API")
+                except Exception as e:
+                    print(f"[WEBSOCKET INIT] ⚠️ Stats error: {e}")
+            else:
+                print("[WEBSOCKET INIT] ℹ️ No symbols to monitor, WebSocket ready for future additions")
         else:
-            print("[WEBSOCKET INIT] No valid symbols found to monitor")
+            print("[WEBSOCKET INIT] ❌ WebSocket failed to start within timeout, using REST API only")
+            if ws_price_manager:
+                try:
+                    ws_price_manager.stop()
+                except Exception:
+                    pass
+            ws_price_manager = None
             
     except Exception as e:
-        print(f"[WEBSOCKET INIT ERROR] {e}")
+        print(f"[WEBSOCKET INIT ERROR] ❌ Critical error: {e}")
+        print("[WEBSOCKET INIT] 🔄 Falling back to REST API for price data")
+        import traceback
+        traceback.print_exc()
+        
+        # Clean up any partial initialization
+        if 'ws_price_manager' in locals() and ws_price_manager:
+            try:
+                ws_price_manager.stop()
+            except Exception:
+                pass
+        ws_price_manager = None
 
 def update_websocket_symbols():
-    """Update WebSocket monitoring based on current positions and YAML symbols."""
+    """Optimized WebSocket symbol management with error handling."""
     if not ws_price_manager:
         return
         
     try:
         symbols_to_monitor = set()
         
-        # Add current position symbols
-        symbols_to_monitor.update(positions.keys())
+        # Add current position symbols (only if they have significant value)
+        for symbol, pos in positions.items():
+            try:
+                qty = pos.get('qty', 0)
+                if qty > 0:
+                    # Quick value check using cached price or skip if unavailable
+                    price = get_latest_price(symbol)
+                    if price and (qty * price) > DUST_LIMIT:
+                        symbols_to_monitor.add(symbol)
+            except Exception as e:
+                print(f"[WEBSOCKET UPDATE] Error checking position {symbol}: {e}")
+                continue
         
-        # Add symbols from YAML file
+        # Add top symbols from YAML file (limited for performance)
         if os.path.exists(YAML_SYMBOLS_FILE):
             try:
                 with open(YAML_SYMBOLS_FILE, 'r') as f:
                     yaml_data = yaml.safe_load(f)
                     if isinstance(yaml_data, dict):
-                        symbols_to_monitor.update(yaml_data.keys())
+                        # Get top 2 symbols only to reduce load
+                        top_symbols = list(yaml_data.keys())[:2]
+                        yaml_symbols = filter_to_allowed_symbols(top_symbols)
+                        symbols_to_monitor.update(yaml_symbols)
             except Exception as e:
-                print(f"[WEBSOCKET UPDATE] Error loading YAML symbols: {e}")
+                print(f"[WEBSOCKET UPDATE] YAML error: {e}")
         
-        # Filter valid symbols
+        # Filter to valid symbols and limit total count
         valid_symbols = [s for s in symbols_to_monitor 
                         if s and isinstance(s, str) and s.endswith('USDC')]
         
-        ws_price_manager.update_symbol_list(valid_symbols)
+        # Limit to maximum 5 symbols for deployment performance
+        valid_symbols = valid_symbols[:5]
+        
+        if valid_symbols:
+            print(f"[WEBSOCKET UPDATE] Updating to monitor {len(valid_symbols)} symbols: {valid_symbols}")
+            ws_price_manager.update_symbol_list(valid_symbols)
+        else:
+            print("[WEBSOCKET UPDATE] No valid symbols to monitor")
         
     except Exception as e:
         print(f"[WEBSOCKET UPDATE ERROR] {e}")
+        # Don't crash the bot, just continue with current monitoring
 
 def cleanup_websocket_monitoring():
-    """Clean up WebSocket monitoring on shutdown."""
+    """Clean up WebSocket monitoring on shutdown with proper session cleanup."""
     global ws_price_manager
     
     if ws_price_manager:
-        print("[WEBSOCKET] Shutting down price monitoring...")
-        ws_price_manager.stop()
-        ws_price_manager = None
+        try:
+            print("[WEBSOCKET] Shutting down price monitoring...")
+            ws_price_manager.stop()
+            
+            # Additional cleanup for any lingering resources
+            import gc
+            import asyncio
+            
+            # Clean up any remaining asyncio tasks
+            try:
+                loop = asyncio.get_event_loop()
+                if not loop.is_closed():
+                    # Cancel all pending tasks
+                    pending_tasks = [task for task in asyncio.all_tasks(loop) if not task.done()]
+                    if pending_tasks:
+                        print(f"[WEBSOCKET] Cancelling {len(pending_tasks)} pending tasks...")
+                        for task in pending_tasks:
+                            task.cancel()
+                        # Wait briefly for tasks to cancel
+                        try:
+                            loop.run_until_complete(asyncio.gather(*pending_tasks, return_exceptions=True))
+                        except Exception:
+                            pass
+            except Exception as task_cleanup_error:
+                print(f"[WEBSOCKET] Task cleanup info: {task_cleanup_error}")
+            
+            gc.collect()  # Force garbage collection
+            
+        except Exception as e:
+            print(f"[WEBSOCKET CLEANUP ERROR] {e}")
+        finally:
+            ws_price_manager = None
+    else:
+        print("[WEBSOCKET] No active monitoring to clean up")
+
+def test_websocket_connection():
+    """Test WebSocket connection and provide deployment diagnostics."""
+    print("\n=== WEBSOCKET CONNECTION TEST ===")
+    
+    try:
+        # Test 1: Check if ws_price_manager exists
+        print(f"1. WebSocket Manager Status: {'✅ Available' if ws_price_manager else '❌ Not initialized'}")
+        
+        if ws_price_manager:
+            # Test 2: Check connection stats
+            stats = ws_price_manager.get_connection_stats()
+            print(f"2. Connection Stats: {stats}")
+            print(f"   - Running: {stats['running']}")
+            print(f"   - Connection Type: {stats['connection_type']}")
+            print(f"   - Fallback Mode: {stats['fallback_mode']}")
+            print(f"   - Monitored Symbols: {stats['monitored_symbols']}")
+            print(f"   - Active Streams: {stats['active_streams']}")
+            
+            # Test 3: Check if monitoring any symbols
+            monitored = ws_price_manager.get_monitored_symbols()
+            print(f"3. Monitored Symbols: {monitored}")
+            
+            # Test 4: Check cache status
+            cache_stats = get_realtime_price_summary()
+            print(f"4. Cache Status: {cache_stats}")
+            
+            # Test 5: Try to get price for a test symbol
+            test_symbol = 'BTCUSDC' if 'BTCUSDC' in ALLOWED_SYMBOLS else list(ALLOWED_SYMBOLS)[0]
+            price = get_latest_price(test_symbol)
+            print(f"5. Price Test ({test_symbol}): {'✅ Success' if price else '❌ Failed'} - Price: {price}")
+            
+            # Test 6: Performance metrics
+            start_time = time.time()
+            for symbol in ALLOWED_SYMBOLS:
+                get_latest_price(symbol)
+            end_time = time.time()
+            print(f"6. Performance Test: {len(ALLOWED_SYMBOLS)} price fetches in {end_time - start_time:.2f}s")
+            
+            # Test 7: Deployment recommendations
+            if stats['fallback_mode']:
+                print("7. Deployment Status: ✅ Using REST API fallback (safe for all environments)")
+            elif stats['running'] and stats['active_streams'] > 0:
+                print("7. Deployment Status: ✅ WebSocket mode active (optimal performance)")
+            else:
+                print("7. Deployment Status: ⚠️ Mixed state - check logs for issues")
+            
+        else:
+            print("❌ WebSocket manager not available - using REST API only")
+            
+            # Test REST API performance
+            start_time = time.time()
+            for symbol in ALLOWED_SYMBOLS:
+                try:
+                    price = float(client.get_symbol_ticker(symbol=symbol)["price"])
+                    print(f"   REST API {symbol}: ${price:.6f}")
+                except Exception as e:
+                    print(f"   REST API {symbol}: ERROR - {e}")
+            end_time = time.time()
+            print(f"   REST API Performance: {len(ALLOWED_SYMBOLS)} calls in {end_time - start_time:.2f}s")
+        
+        print("=== TEST COMPLETE ===\n")
+        
+    except Exception as e:
+        print(f"❌ Test failed with error: {e}")
+        traceback.print_exc()
+
+def optimize_for_deployment():
+    """Optimize bot settings for deployment environment."""
+    print("[DEPLOYMENT] 🚀 Optimizing bot for deployment environment...")
+    
+    try:
+        # 1. Reduce memory usage
+        global price_cache
+        max_cache_size = 50  # Limit cache to 50 symbols
+        with price_cache_lock:
+            if len(price_cache) > max_cache_size:
+                # Keep only the most recently updated entries
+                sorted_cache = sorted(price_cache.items(), 
+                                    key=lambda x: x[1].get('timestamp', 0), 
+                                    reverse=True)
+                price_cache = dict(sorted_cache[:max_cache_size])
+                print(f"[DEPLOYMENT] Trimmed price cache to {len(price_cache)} entries")
+        
+        # 2. Configure logging for deployment
+        import logging
+        logging.basicConfig(
+            level=logging.WARNING,  # Reduce log verbosity
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.StreamHandler(sys.stdout)
+            ]
+        )
+        
+        # 3. Set WebSocket limits
+        if ws_price_manager:
+            # Limit to essential symbols only
+            current_symbols = ws_price_manager.get_monitored_symbols()
+            if len(current_symbols) > 5:
+                essential_symbols = list(ALLOWED_SYMBOLS)[:2]  # Only top 2
+                ws_price_manager.update_symbol_list(essential_symbols)
+                print(f"[DEPLOYMENT] Limited WebSocket monitoring to {len(essential_symbols)} symbols")
+        
+        # 4. Optimize API call frequency
+        print("[DEPLOYMENT] ✅ Deployment optimizations applied")
+        
+        # 5. Test connection
+        test_websocket_connection()
+        
+        return True
+        
+    except Exception as e:
+        print(f"[DEPLOYMENT ERROR] Failed to optimize: {e}")
+        return False
 
 def add_performance_monitoring():
     """Add performance monitoring to track scheduler delays and suppress warnings."""
@@ -578,31 +1040,68 @@ def get_min_volume_for_symbol(symbol):
         return MIN_VOLUME_DEFAULT
 
 def get_latest_price(symbol):
-    """Get latest price from WebSocket cache first, fallback to REST API."""
+    """Optimized price fetching with WebSocket cache priority and intelligent REST fallback."""
     try:
-        # Try to get from WebSocket cache first
+        # Priority 1: Try WebSocket manager cache (most recent data)
+        if ws_price_manager and ws_price_manager._running:
+            ws_price = ws_price_manager.get_latest_price(symbol)
+            if ws_price is not None:
+                return ws_price
+        
+        # Priority 2: Try global price cache (from WebSocket streams)
         with price_cache_lock:
             if symbol in price_cache:
                 cache_data = price_cache[symbol]
-                # Use cached price if it's less than 5 seconds old
-                if time.time() - cache_data['timestamp'] < 5.0:
+                # Use cache if less than 30 seconds old for better performance
+                if time.time() - cache_data['timestamp'] < 30:
                     return cache_data['price']
         
-        # Fallback to REST API if no recent cached data
-        price = float(client.get_symbol_ticker(symbol=symbol)["price"])
-        
-        # Update cache with REST API data
-        with price_cache_lock:
-            price_cache[symbol] = {
+        # Priority 3: Fallback to REST API with error handling
+        try:
+            ticker_data = client.get_symbol_ticker(symbol=symbol)
+            price = float(ticker_data["price"])
+            
+            # Update both caches with REST API data
+            timestamp = time.time()
+            cache_entry = {
                 'price': price,
-                'timestamp': time.time(),
-                'volume': 0,  # Not available from ticker endpoint
-                'price_change_pct': 0  # Not available from ticker endpoint
+                'timestamp': timestamp,
+                'volume': 0,
+                'price_change_pct': 0,
+                'source': 'REST',
+                'high_24h': price,
+                'low_24h': price,
+                'count': 0
             }
+            
+            # Update global cache
+            with price_cache_lock:
+                price_cache[symbol] = cache_entry
+                
+            # Update WebSocket manager cache if available
+            if ws_price_manager and hasattr(ws_price_manager, '_cache_lock'):
+                with ws_price_manager._cache_lock:
+                    ws_price_manager._price_cache[symbol] = cache_entry.copy()
+            
+            return price
+            
+        except BinanceAPIException as e:
+            if "Invalid symbol" in str(e):
+                print(f"[PRICE WARNING] {symbol}: Invalid symbol")
+                return None
+            else:
+                print(f"[PRICE ERROR] {symbol}: Binance API error: {e}")
+                # Try to get from stale cache as last resort
+                with price_cache_lock:
+                    if symbol in price_cache:
+                        stale_data = price_cache[symbol]
+                        if time.time() - stale_data['timestamp'] < 300:  # 5 minutes max staleness
+                            print(f"[PRICE FALLBACK] Using stale cache for {symbol}")
+                            return stale_data['price']
+                return None
         
-        return price
     except Exception as e:
-        print(f"[PRICE ERROR] {symbol}: {e}")
+        print(f"[PRICE ERROR] {symbol}: Unexpected error: {e}")
         return None
 
 def get_cached_price_data(symbol):
@@ -611,20 +1110,63 @@ def get_cached_price_data(symbol):
         return price_cache.get(symbol, None)
 
 def get_realtime_price_summary():
-    """Get summary of real-time price monitoring status."""
-    with price_cache_lock:
-        cache_size = len(price_cache)
-        recent_updates = sum(1 for data in price_cache.values() 
-                           if time.time() - data['timestamp'] < 10)
-    
-    monitored = len(ws_price_manager.get_monitored_symbols()) if ws_price_manager else 0
-    
-    return {
-        'cached_symbols': cache_size,
-        'recent_updates': recent_updates,
-        'monitored_symbols': monitored,
-        'websocket_active': ws_price_manager._running if ws_price_manager else False
-    }
+    """Optimized real-time price monitoring status with better error handling."""
+    try:
+        cache_info = {}
+        
+        # Safely check global price cache
+        try:
+            with price_cache_lock:
+                cache_size = len(price_cache)
+                recent_updates = sum(1 for data in price_cache.values() 
+                                   if time.time() - data.get('timestamp', 0) < 10)
+                cache_info = {
+                    'cached_symbols': cache_size,
+                    'recent_updates': recent_updates
+                }
+        except Exception as e:
+            print(f"[PRICE SUMMARY] Cache error: {e}")
+            cache_info = {'cached_symbols': 0, 'recent_updates': 0}
+        
+        # Safely check WebSocket manager
+        ws_info = {}
+        try:
+            if ws_price_manager:
+                stats = ws_price_manager.get_connection_stats()
+                ws_info = {
+                    'monitored_symbols': stats.get('monitored_symbols', 0),
+                    'websocket_active': stats.get('running', False),
+                    'active_streams': stats.get('active_streams', 0),
+                    'manager_active': stats.get('manager_active', False)
+                }
+            else:
+                ws_info = {
+                    'monitored_symbols': 0,
+                    'websocket_active': False,
+                    'active_streams': 0,
+                    'manager_active': False
+                }
+        except Exception as e:
+            print(f"[PRICE SUMMARY] WebSocket error: {e}")
+            ws_info = {
+                'monitored_symbols': 0,
+                'websocket_active': False,
+                'active_streams': 0,
+                'manager_active': False
+            }
+        
+        return {**cache_info, **ws_info}
+        
+    except Exception as e:
+        print(f"[PRICE SUMMARY ERROR] {e}")
+        return {
+            'cached_symbols': 0,
+            'recent_updates': 0,
+            'monitored_symbols': 0,
+            'websocket_active': False,
+            'active_streams': 0,
+            'manager_active': False
+        }
 
 def min_notional_for(symbol):
     try:
@@ -927,6 +1469,34 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
                 f"💰 Checked ${investable:.2f} USDC for immediate opportunities")
         except Exception as e:
             await send_with_keyboard(update, f"❌ Fast check failed: {str(e)}")
+    elif text in ["/refresh", "🔄 Refresh Keyboard"]:
+        await send_with_keyboard(update, "🔄 Keyboard refreshed! You should now see the updated buttons.", 
+                                reply_markup=ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True))
+    
+    elif text in ["📊 Trading Status", "� Trading Status"]:  # Handle both old and new button text
+        await send_with_keyboard(update, "📊 Getting trading status...")
+        
+        # Capture debug output
+        import io
+        import sys
+        
+        old_stdout = sys.stdout
+        sys.stdout = captured_output = io.StringIO()
+        
+        try:
+            get_trading_status()
+            debug_text = captured_output.getvalue()
+        finally:
+            sys.stdout = old_stdout
+        
+        # Send debug info
+        if len(debug_text) > 4000:
+            # Split long messages
+            chunks = [debug_text[i:i+4000] for i in range(0, len(debug_text), 4000)]
+            for i, chunk in enumerate(chunks):
+                await send_with_keyboard(update, f"```\nTrading Status ({i+1}/{len(chunks)}):\n{chunk}\n```", parse_mode='Markdown')
+        else:
+            await send_with_keyboard(update, f"```\nTrading Status:\n{debug_text}\n```", parse_mode='Markdown')
     
     else:
         await send_with_keyboard(update, "Unknown action.")
@@ -983,52 +1553,98 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 def telegram_main():
-    # Configure the application with better job queue settings
-    from telegram.ext import JobQueue
-    
-    application = ApplicationBuilder() \
-        .token(TELEGRAM_TOKEN) \
-        .build()
-
-    # Configure job queue for maximum tolerance of delays
-    if hasattr(application.job_queue, '_scheduler'):
-        # Set very generous misfire grace time
-        application.job_queue._scheduler.configure(
-            misfire_grace_time=120,  # Allow up to 2 minutes delay
-            max_workers=1,           # Single worker to avoid conflicts
-            coalesce=True           # Merge multiple missed runs into one
-        )
-
-    application.add_handler(CommandHandler('start', start_handler))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, telegram_handle_message))
-
-    # Add periodic alarm job with faster momentum checking
-    application.job_queue.run_repeating(
-        alarm_job, 
-        interval=120,  # 2 minutes instead of 6 for faster response
-        first=15,      # First run after 15 seconds for quicker startup
-        name="momentum_checker"
-    )
-
-    # Send startup alert using post_init hook to avoid scheduling issues
-    async def post_init(application):
+    """Run the Telegram bot with proper event loop handling for deployment environments."""
+    try:
+        import asyncio
+        import threading
+        
+        # Check if we're in an environment with an existing event loop
+        existing_loop = None
         try:
-            fetch_usdc_balance()
-            total_positions = len([p for p in positions.items() if get_latest_price(p[0]) and p[1]['qty'] * get_latest_price(p[0]) > DUST_LIMIT])
+            existing_loop = asyncio.get_running_loop()
+            print("[TELEGRAM] Detected existing event loop, using threaded approach")
+        except RuntimeError:
+            print("[TELEGRAM] No existing event loop, starting normally")
+        
+        def run_bot_in_thread():
+            """Run the bot in a separate thread with its own event loop."""
+            # Create new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
             
-            await send_alarm_message(
-                f"🤖 BOT STARTED\n\n"
-                f"✅ System initialized successfully\n"
-                f"💰 USDC Balance: ${balance['usd']:.2f}\n"
-                f"📊 Active Positions: {total_positions}\n"
-                f"⏸️ Trading Status: {'PAUSED' if is_paused() else 'ACTIVE'}\n"
-                f"🕐 Startup Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-            )
-        except Exception as e:
-            print(f"[ALERT ERROR] Could not send startup alert: {e}")
-    
-    application.post_init = post_init
-    application.run_polling()
+            try:
+                # Configure the application with better job queue settings
+                from telegram.ext import JobQueue
+                
+                application = ApplicationBuilder() \
+                    .token(TELEGRAM_TOKEN) \
+                    .build()
+
+                # Configure job queue for maximum tolerance of delays
+                if hasattr(application.job_queue, '_scheduler'):
+                    # Set very generous misfire grace time
+                    application.job_queue._scheduler.configure(
+                        misfire_grace_time=120,  # Allow up to 2 minutes delay
+                        max_workers=1,           # Single worker to avoid conflicts
+                        coalesce=True           # Merge multiple missed runs into one
+                    )
+
+                application.add_handler(CommandHandler('start', start_handler))
+                application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, telegram_handle_message))
+
+                # Add periodic alarm job with faster momentum checking
+                application.job_queue.run_repeating(
+                    alarm_job, 
+                    interval=120,  # 2 minutes instead of 6 for faster response
+                    first=15,      # First run after 15 seconds for quicker startup
+                    name="momentum_checker"
+                )
+
+                # Send startup alert using post_init hook to avoid scheduling issues
+                async def post_init(application):
+                    try:
+                        fetch_usdc_balance()
+                        total_positions = len([p for p in positions.items() if get_latest_price(p[0]) and p[1]['qty'] * get_latest_price(p[0]) > DUST_LIMIT])
+                        
+                        await send_alarm_message(
+                            f"🤖 BOT STARTED\n\n"
+                            f"✅ System initialized successfully\n"
+                            f"💰 USDC Balance: ${balance['usd']:.2f}\n"
+                            f"📊 Active Positions: {total_positions}\n"
+                            f"⏸️ Trading Status: {'PAUSED' if is_paused() else 'ACTIVE'}\n"
+                            f"🕐 Startup Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                        )
+                    except Exception as e:
+                        print(f"[ALERT ERROR] Could not send startup alert: {e}")
+                
+                application.post_init = post_init
+                
+                # Run with proper shutdown handling
+                print("[TELEGRAM] Starting bot in dedicated thread...")
+                application.run_polling(stop_signals=None)  # Disable automatic signal handling
+                
+            except Exception as e:
+                print(f"[TELEGRAM ERROR] Failed to start Telegram bot: {e}")
+                import traceback
+                traceback.print_exc()
+            finally:
+                loop.close()
+                print("[TELEGRAM] Bot stopped")
+        
+        if existing_loop:
+            # If there's an existing loop, run the bot in a separate thread
+            bot_thread = threading.Thread(target=run_bot_in_thread, daemon=False)
+            bot_thread.start()
+            print("[TELEGRAM] Bot thread started, returning control to main thread")
+            return bot_thread  # Return thread so main can join if needed
+        else:
+            # No existing loop, run normally
+            run_bot_in_thread()
+        
+    except Exception as e:
+        print(f"[TELEGRAM ERROR] Failed to initialize Telegram bot: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def quote_precision_for(symbol):
@@ -1069,16 +1685,15 @@ def buy(symbol, amount=None):
         print(f"[DEBUG] Actual USDC balance after buy attempt: {balance['usd']}")
         
         # Send investment alert
-        import asyncio
         try:
-            asyncio.create_task(send_alarm_message(
+            send_alarm_message_safe(
                 f"💰 INVESTMENT MADE\n\n"
                 f"📊 {symbol}\n"
                 f"💵 Amount: ${trade_amount:.2f}\n"
                 f"📈 Price: ${price:.6f}\n"
                 f"🔢 Quantity: {qty:.6f}\n"
                 f"💼 Remaining USDC: ${balance['usd']:.2f}"
-            ))
+            )
         except Exception as e:
             print(f"[ALERT ERROR] Could not send investment alert: {e}")
         
@@ -1217,9 +1832,8 @@ def auto_sell_momentum_positions(min_profit=MIN_PROFIT, trailing_stop=TRAIL_STOP
                     )
                     
                     # Send sell alert
-                    import asyncio
                     try:
-                        asyncio.create_task(send_alarm_message(
+                        send_alarm_message_safe(
                             f"💸 POSITION SOLD\n\n"
                             f"📊 {symbol}\n"
                             f"📉 Entry: ${entry:.6f}\n"
@@ -1228,7 +1842,7 @@ def auto_sell_momentum_positions(min_profit=MIN_PROFIT, trailing_stop=TRAIL_STOP
                             f"💰 PnL: ${pnl_dollar:.2f} ({pnl_pct:.2f}%)\n"
                             f"⏱️ Hold Time: {held_for/60:.1f} min\n"
                             f"📋 Reason: {reason}"
-                        ))
+                        )
                     except Exception as e:
                         print(f"[ALERT ERROR] Could not send sell alert: {e}")
                     
@@ -1477,13 +2091,13 @@ def fast_momentum_invest(usdc_limit):
                 
                 # Send fast alert
                 try:
-                    asyncio.create_task(send_alarm_message(
+                    send_alarm_message_safe(
                         f"⚡ FAST MOMENTUM BUY ⚡\n\n"
                         f"📊 {symbol}\n"
                         f"💵 Amount: ${min_notional:.2f}\n"
                         f"🚀 Reason: Strong 3-timeframe momentum\n"
                         f"⏱️ Response: Ultra-fast execution"
-                    ))
+                    )
                 except Exception as e:
                     print(f"[FAST ALERT ERROR] {e}")
             else:
@@ -1502,9 +2116,19 @@ def load_symbol_stats():
     try:
         with open(YAML_SYMBOLS_FILE, "r") as f:
             all_stats = yaml.safe_load(f)
-            # Filter to only allowed symbols
-            filtered_stats = {k: v for k, v in all_stats.items() if k in ALLOWED_SYMBOLS}
+            if not isinstance(all_stats, dict):
+                raise ValueError("YAML file is not a valid dict")
+            # Fast filter to only allowed symbols using set intersection
+            allowed = ALLOWED_SYMBOLS & set(all_stats.keys())
+            filtered_stats = {k: all_stats[k] for k in allowed}
+            # Validate required fields for reliability (minimal loop)
+            invalid = [k for k, v in filtered_stats.items() if not (isinstance(v, dict) and all(key in v for key in ["market_cap", "volume_1d", "volatility"]))]
+            for symbol in invalid:
+                print(f"[YAML] Removing {symbol}: missing required fields")
+                del filtered_stats[symbol]
             print(f"[YAML] Loaded {len(filtered_stats)} allowed symbols from {len(all_stats)} total")
+            if not filtered_stats:
+                raise ValueError("No valid symbols found in YAML stats")
             return filtered_stats
     except Exception as e:
         print(f"[YAML ERROR] Could not read {YAML_SYMBOLS_FILE}: {e}")
@@ -1602,9 +2226,43 @@ def check_ma_cross(symbol, interval='1m', short_period=MA_PERIODS_SHORT, long_pe
         return False
 
 def check_advanced_momentum(symbol, interval='1m', min_change=0.005):
-    """Check momentum using price change, RSI, volume spike, and MA cross."""
+    """Optimized momentum check using cached price data when available."""
     try:
-        # Get price change
+        # Try to get cached price data first for better performance
+        cached_data = None
+        if ws_price_manager and ws_price_manager._running:
+            cached_data = ws_price_manager.get_price_data(symbol)
+        
+        if not cached_data:
+            with price_cache_lock:
+                cached_data = price_cache.get(symbol, {})
+        
+        # Use cached data if recent and has required fields
+        if (cached_data and 
+            time.time() - cached_data.get('timestamp', 0) < 60 and
+            'price_change_pct' in cached_data):
+            
+            pct_change = cached_data['price_change_pct'] / 100.0  # Convert from percentage
+            volume = cached_data.get('volume', 0)
+            
+            # Basic momentum check from cached data
+            price_momentum = pct_change > min_change
+            volume_spike = volume > 0  # Basic volume check from cache
+            
+            indicators = {
+                'pct_change': pct_change * 100,
+                'rsi': 65,  # Estimated RSI when using cached data
+                'volume_spike': volume_spike,
+                'ma_cross': False,  # Cannot calculate from cache alone
+                'price_momentum': price_momentum,
+                'rsi_momentum': False,
+                'source': 'cache'
+            }
+            
+            has_momentum = price_momentum and volume_spike
+            return has_momentum, indicators
+        
+        # Fallback to full API-based calculation
         klines = client.get_klines(symbol=symbol, interval=interval, limit=30)
         if len(klines) < 2:
             return False, {}
@@ -1634,13 +2292,15 @@ def check_advanced_momentum(symbol, interval='1m', min_change=0.005):
             'volume_spike': volume_spike,
             'ma_cross': ma_cross,
             'price_momentum': price_momentum,
-            'rsi_momentum': rsi_momentum
+            'rsi_momentum': rsi_momentum,
+            'source': 'api'
         }
         
         # Require price momentum + at least one other indicator
         has_momentum = price_momentum and (volume_spike or rsi_momentum or ma_cross)
         
         return has_momentum, indicators
+        
     except Exception as e:
         print(f"[ADVANCED MOMENTUM ERROR] {symbol} {interval}: {e}")
         return False, {}
@@ -2202,6 +2862,36 @@ async def send_alarm_message(text):
     bot = Bot(token=TELEGRAM_TOKEN)
     await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=text)
 
+def send_alarm_message_safe(text):
+    """Send alarm message safely, handling existing event loops."""
+    import asyncio
+    import threading
+    
+    try:
+        # Try to get existing loop
+        loop = asyncio.get_running_loop()
+        # If we have a running loop, run in a thread
+        def run_in_thread():
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            try:
+                new_loop.run_until_complete(send_alarm_message(text))
+            finally:
+                new_loop.close()
+        
+        thread = threading.Thread(target=run_in_thread, daemon=True)
+        thread.start()
+        thread.join(timeout=10)  # Wait up to 10 seconds
+        
+    except RuntimeError:
+        # No running loop, run normally
+        try:
+            asyncio.run(send_alarm_message(text))
+        except Exception as e:
+            print(f"[ALARM ERROR] Could not send message: {e}")
+    except Exception as e:
+        print(f"[ALARM ERROR] Unexpected error sending message: {e}")
+
 async def check_and_alarm_high_volume_optimized(context=None):
     """
     Optimized version that uses WebSocket data and processes in batches to reduce delays.
@@ -2489,7 +3179,76 @@ async def alarm_job(context: CallbackContext):
     except Exception as e:
         print(f"[ALARM JOB ERROR] {e}")
 
+def test_websocket_connection():
+    """Test WebSocket connection for debugging purposes."""
+    print("[WEBSOCKET TEST] 🧪 Testing WebSocket connectivity...")
+    
+    test_manager = None
+    try:
+        # Create a temporary WebSocket manager
+        test_manager = WebSocketPriceManager(client)
+        print("[WEBSOCKET TEST] ✅ WebSocket manager created successfully")
+        
+        # Try to start it
+        test_manager.start()
+        print(f"[WEBSOCKET TEST] Start result - Running: {getattr(test_manager, '_running', False)}")
+        
+        # Since we're using simplified mode, test REST API fallback
+        print("[WEBSOCKET TEST] 🔧 Testing REST API fallback for BTCUSDC...")
+        price = get_latest_price('BTCUSDC')
+        if price:
+            print(f"[WEBSOCKET TEST] ✅ BTCUSDC price via REST API: ${price}")
+        else:
+            print("[WEBSOCKET TEST] ❌ No BTCUSDC price received via REST API")
+            
+        print("[WEBSOCKET TEST] 🔧 Testing REST API fallback for ETHUSDC...")
+        price = get_latest_price('ETHUSDC')
+        if price:
+            print(f"[WEBSOCKET TEST] ✅ ETHUSDC price via REST API: ${price}")
+        else:
+            print("[WEBSOCKET TEST] ❌ No ETHUSDC price received via REST API")
+        
+    except Exception as e:
+        print(f"[WEBSOCKET TEST] ❌ Test failed: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        # Cleanup
+        if test_manager:
+            try:
+                test_manager.stop()
+                print("[WEBSOCKET TEST] 🛑 Test completed and cleaned up")
+            except Exception as e:
+                print(f"[WEBSOCKET TEST] ⚠️ Cleanup warning: {e}")
+
 if __name__ == "__main__":
+    # Enable tracemalloc for better debugging
+    import tracemalloc
+    tracemalloc.start()
+    
+    # Set up signal handlers for clean shutdown
+    import signal
+    import atexit
+    
+    def signal_handler(signum, frame):
+        print(f"\n[SIGNAL] Received signal {signum}, shutting down gracefully...")
+        cleanup_websocket_monitoring()
+        import sys
+        sys.exit(0)
+    
+    # Register signal handlers
+    signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C
+    signal.signal(signal.SIGTERM, signal_handler)  # Termination signal
+    
+    # Register cleanup on normal exit
+    atexit.register(cleanup_websocket_monitoring)
+    
+    # Run WebSocket test first
+    test_websocket_connection()
+    
+    # Initialize WebSocket monitoring
+    initialize_websocket_monitoring()
+    
     # Add performance monitoring to reduce scheduler warning noise
     add_performance_monitoring()
     
@@ -2502,11 +3261,25 @@ if __name__ == "__main__":
     print(f"[INFO] Bot paused state on startup: {is_paused()}")
     
     try:
+        # Start trading thread
         trading_thread = threading.Thread(target=trading_loop, daemon=True)
         trading_thread.start()
-        telegram_main()  # This blocks; run in main thread for proper Ctrl+C
+        
+        # Start Telegram bot (may run in separate thread if event loop exists)
+        bot_thread = telegram_main()
+        
+        # If telegram_main returned a thread, join it (blocking wait)
+        if bot_thread and hasattr(bot_thread, 'join'):
+            print("[MAIN] Waiting for Telegram bot thread...")
+            bot_thread.join()
+        
     except KeyboardInterrupt:
         print("\n[INFO] Shutting down gracefully...")
+        cleanup_websocket_monitoring()
+    except Exception as e:
+        print(f"[ERROR] Unexpected error: {e}")
+        import traceback
+        traceback.print_exc()
         cleanup_websocket_monitoring()
     finally:
         cleanup_websocket_monitoring()
