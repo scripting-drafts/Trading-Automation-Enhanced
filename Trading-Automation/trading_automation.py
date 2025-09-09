@@ -21,10 +21,6 @@ from telegram.ext import (
 import apscheduler.util
 from functools import lru_cache
 from config import API_KEY, API_SECRET, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
-# API_KEY = os.environ['BINANCE_KEY']
-# API_SECRET = os.environ['BINANCE_SECRET']
-# TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
-# TELEGRAM_CHAT_ID = int(os.environ['TELEGRAM_CHAT_ID'])
 
 def patched_get_localzone():
     return pytz.UTC
@@ -333,7 +329,6 @@ def diagnose_investment_failure(symbol="ETHUSDC"):
     )
     
     min_notional = min_notional_for(symbol)
-    needed_for_investment = min_notional + total_taxes_owed
     investable_usdc = usdc_balance - total_taxes_owed
     
     print(f"4. Financial Check:")
@@ -896,7 +891,7 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         sys.stdout = captured_output = io.StringIO()
         
         try:
-            status_info = get_trading_status()
+            get_trading_status()
             debug_text = captured_output.getvalue()
         finally:
             sys.stdout = old_stdout
