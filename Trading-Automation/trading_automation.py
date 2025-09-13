@@ -57,7 +57,7 @@ MAX_POSITIONS = 20
 MIN_PROFIT = 0.8       # %
 TRAIL_STOP = 0.5       # %
 MAX_HOLD_TIME = 900    # seconds
-INVEST_AMOUNT = 10     # USD per coin
+INVEST_AMOUNT = 12     # USD per coin (increased to ensure min_notional compliance)
 TRADE_LOG_FILE = "trades_detailed.csv"
 YAML_SYMBOLS_FILE = "symbols.yaml"
 BOT_STATE_FILE = "bot_state.json"
@@ -2338,7 +2338,7 @@ def cross_asset_trade(from_asset, to_asset, amount, symbol_for_position=None):
             print(f"[ERROR] Insufficient {from_asset} balance: {from_balance:.8f} < {rounded_amount:.8f} (rounded)")
             return None
         
-        # ✅ STEP 2: Check minimum notional value
+        # ✅ STEP 2: Check minimum notional value and auto-adjust if needed
         min_notional = min_notional_for(symbol)
         current_price = get_latest_price(symbol)
         if not current_price:
@@ -2347,8 +2347,20 @@ def cross_asset_trade(from_asset, to_asset, amount, symbol_for_position=None):
             
         trade_value = rounded_amount * current_price
         if trade_value < min_notional:
-            print(f"[ERROR] Trade value ${trade_value:.2f} below minimum notional ${min_notional:.2f}")
-            return None
+            print(f"[AUTO-ADJUST] Trade value ${trade_value:.2f} below minimum notional ${min_notional:.2f}")
+            
+            # Calculate required amount to meet minimum notional (with 5% buffer)
+            required_amount = (min_notional * 1.05) / current_price
+            adjusted_amount = round_qty(symbol, required_amount)
+            
+            # Check if we have enough balance for the adjusted amount
+            if balance[balance_key] >= adjusted_amount:
+                print(f"[AUTO-ADJUST] Increasing trade amount from {rounded_amount:.8f} to {adjusted_amount:.8f}")
+                rounded_amount = adjusted_amount
+                trade_value = rounded_amount * current_price
+            else:
+                print(f"[ERROR] Cannot meet minimum notional. Required: {adjusted_amount:.8f}, Available: {balance[balance_key]:.8f}")
+                return None
         
         print(f"[CROSS-TRADE] Trade validation passed - Value: ${trade_value:.2f}, Min: ${min_notional:.2f}")
         
