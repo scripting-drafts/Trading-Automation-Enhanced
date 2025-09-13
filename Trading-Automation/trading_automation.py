@@ -28,8 +28,7 @@ def patched_get_localzone():
 apscheduler.util.get_localzone = patched_get_localzone
 
 # Trading mode configuration
-TRADING_MODE = 'AUTO_DETECT'  # Options: 'SPOT', 'UNIVERSAL_TRANSFER', 'SIMULATE', 'AUTO_DETECT'
-ALLOW_SIMULATED_TRADES = True  # Set to False to disable simulated trades
+TRADING_MODE = 'SPOT'  # Options: 'SPOT', 'UNIVERSAL_TRANSFER', 'AUTO_DETECT'
 
 # Universal Transfer configuration
 ENABLE_UNIVERSAL_TRANSFER = True  # Enable Universal Transfer mode
@@ -708,6 +707,78 @@ def diagnose_investment_failure(symbol="ETHUSDC"):
     print(f"\n✅ ALL CHECKS PASSED - {symbol} should have been invested!")
     print(f"If it wasn't invested, check the actual trading loop execution and buy() function.")
 
+def diagnose_balance_sync():
+    """Diagnostic function to check for position vs balance sync issues."""
+    print(f"\n=== BALANCE SYNC DIAGNOSTIC ===")
+    
+    # 1. Check local balance state
+    print(f"1. Local Balance Tracking:")
+    print(f"   BTC: {balance['btc']:.8f}")
+    print(f"   ETH: {balance['eth']:.8f}")
+    print(f"   USDC: ${balance['usd']:.2f}")
+    
+    # 2. Fetch live balances
+    print(f"\n2. Live Binance Balances:")
+    try:
+        btc_info = client.get_asset_balance(asset="BTC")
+        eth_info = client.get_asset_balance(asset="ETH")
+        usdc_info = client.get_asset_balance(asset="USDC")
+        
+        live_btc = float(btc_info['free'])
+        live_eth = float(eth_info['free'])
+        live_usdc = float(usdc_info['free'])
+        
+        print(f"   BTC: {live_btc:.8f}")
+        print(f"   ETH: {live_eth:.8f}")
+        print(f"   USDC: ${live_usdc:.2f}")
+        
+        # 3. Check for sync issues
+        print(f"\n3. Sync Status:")
+        btc_synced = abs(balance['btc'] - live_btc) < 0.00000001
+        eth_synced = abs(balance['eth'] - live_eth) < 0.00000001
+        usdc_synced = abs(balance['usd'] - live_usdc) < 0.01
+        
+        print(f"   BTC: {'✅ SYNCED' if btc_synced else '❌ OUT OF SYNC'}")
+        print(f"   ETH: {'✅ SYNCED' if eth_synced else '❌ OUT OF SYNC'}")
+        print(f"   USDC: {'✅ SYNCED' if usdc_synced else '❌ OUT OF SYNC'}")
+        
+        # 4. Check positions that might have sync issues
+        print(f"\n4. Position Analysis:")
+        sync_issues = []
+        for symbol, pos in positions.items():
+            qty = pos.get('qty', 0)
+            if qty > 0:
+                if symbol == 'BTCUSDC' and qty > live_btc:
+                    sync_issues.append(f"{symbol}: Position qty {qty:.8f} > BTC balance {live_btc:.8f}")
+                elif symbol == 'ETHUSDC' and qty > live_eth:
+                    sync_issues.append(f"{symbol}: Position qty {qty:.8f} > ETH balance {live_eth:.8f}")
+                elif symbol == 'ETHBTC':
+                    # For ETHBTC, check both assets
+                    if qty > live_eth:
+                        sync_issues.append(f"{symbol}: Position qty {qty:.8f} > ETH balance {live_eth:.8f}")
+                    if qty > live_btc:
+                        sync_issues.append(f"{symbol}: Position qty {qty:.8f} > BTC balance {live_btc:.8f}")
+        
+        if sync_issues:
+            print(f"   ❌ SYNC ISSUES FOUND:")
+            for issue in sync_issues:
+                print(f"     • {issue}")
+        else:
+            print(f"   ✅ No position sync issues detected")
+        
+        # 5. Auto-fix sync issues
+        if not (btc_synced and eth_synced and usdc_synced):
+            print(f"\n5. Auto-fixing sync issues...")
+            balance['btc'] = live_btc
+            balance['eth'] = live_eth
+            balance['usd'] = live_usdc
+            print(f"   ✅ Local balance updated with live data")
+        
+    except Exception as e:
+        print(f"   ❌ Error fetching live balances: {e}")
+    
+    print(f"=== DIAGNOSTIC COMPLETE ===\n")
+
 def initialize_websocket_monitoring():
     """Initialize optimized WebSocket monitoring using Binance ThreadedWebsocketManager with enhanced error handling."""
     global ws_price_manager
@@ -868,13 +939,13 @@ def detect_trading_mode():
             print(f"[TRADING MODE] Universal Transfer detected: {trade_groups}")
             return 'UNIVERSAL_TRANSFER'
         
-        # Fallback to simulation mode
-        print("[TRADING MODE] No trading permissions detected, using simulation mode")
-        return 'SIMULATE'
+        # Fallback to SPOT mode
+        print("[TRADING MODE] No trading permissions detected, fallback to SPOT mode")
+        return 'SPOT'
         
     except Exception as e:
         print(f"[TRADING MODE ERROR] Could not detect trading mode: {e}")
-        return 'SIMULATE'
+        return 'SPOT'
 
 def get_effective_trading_mode():
     """Get the effective trading mode based on configuration and detection."""
@@ -1761,9 +1832,9 @@ Type `/help` for all available commands."""
         if trading_mode == 'SPOT':
             mode_info += "✅ Full SPOT trading enabled"
         elif trading_mode == 'UNIVERSAL_TRANSFER':
-            mode_info += "🔄 Universal Transfer mode (simulated trading)"
+            mode_info += "🔄 Universal Transfer mode with Convert API"
         else:
-            mode_info += "⚠️ Simulation mode only"
+            mode_info += "⚠️ No trading permissions detected"
         
         api_test_text += mode_info
         
@@ -1803,21 +1874,21 @@ Type `/help` for all available commands."""
 🔄 **Universal Transfer Mode**
 • Using TRD_GRP permissions
 • Convert API: {'✅ Available' if convert_available else '❌ Not enabled'}
-• {'Real conversions will be used' if convert_available else 'Simulated trading with real market data'}
+• {'Real conversions will be used' if convert_available else 'Convert API required for trading'}
 • Accurate price tracking and momentum detection
 
 **{('Convert API Options' if convert_available else 'Enable Convert API') + ':'}**
 {'• ✅ Real conversions enabled!' if convert_available else '• Go to Binance API settings'}
 {'• Monitor conversion orders in Telegram' if convert_available else '• Enable Convert permissions'}
-{'• Real balance updates' if convert_available else '• Consider manual trading for real execution'}
-• Use simulation for strategy testing
+{'• Real balance updates' if convert_available else '• Manual trading may be required'}
+• Strategy testing mode available
 """
         else:
             mode_msg += """
-⚠️ **Simulation Mode**
+⚠️ **No Trading Permissions**
 • No trading permissions detected
-• All trades are simulated only
 • Enable SPOT or Universal Transfer permissions
+• Check API configuration
 """
         
         await send_with_keyboard(update, mode_msg, parse_mode='Markdown')
@@ -1877,7 +1948,7 @@ Real conversions will be used for trading."""
     elif text in ["/help", "/commands"]:
         trading_mode = get_effective_trading_mode()
         mode_status = f"""🔄 **Current Trading Mode: {trading_mode}**
-{'✅ Real trading permissions active' if trading_mode == 'SPOT' else '🔄 Universal Transfer mode (simulated)' if trading_mode == 'UNIVERSAL_TRANSFER' else '⚠️ Simulation mode only'}
+{'✅ Real trading permissions active' if trading_mode == 'SPOT' else '🔄 Universal Transfer mode with Convert API' if trading_mode == 'UNIVERSAL_TRANSFER' else '⚠️ No trading permissions detected'}
 
 """
         
@@ -2198,61 +2269,18 @@ def buy_with_universal_transfer(symbol, amount=None):
                     
                     print(f"[CONVERT] ✅ Real position created for {symbol}")
                     return positions[symbol]
-                    
                 else:
-                    print("[CONVERT] Convert API call failed, falling back to simulation")
+                    print("[CONVERT] Convert API call failed, no alternative trading method available")
+                    return None
             else:
-                print("[CONVERT] Convert API not available, falling back to simulation")
+                print("[CONVERT] Convert API not available, no alternative trading method available")
+                return None
                 
         except ImportError:
-            print("[CONVERT] Convert API module not available, falling back to simulation")
+            print("[CONVERT] Convert API module not available, no alternative trading method available")
+            return None
         except Exception as convert_error:
-            print(f"[CONVERT] Convert API error: {convert_error}, falling back to simulation")
-        
-        # Method 2: Simulated trading with accurate market data
-        if ALLOW_SIMULATED_TRADES:
-            print(f"[SIMULATE] Executing simulated trade:")
-            print(f"[SIMULATE] - Symbol: {symbol}")
-            print(f"[SIMULATE] - USDC Amount: ${trade_amount:.2f}")
-            print(f"[SIMULATE] - Market Price: ${current_price:.6f}")
-            print(f"[SIMULATE] - Price with Slippage: ${adjusted_price:.6f}")
-            print(f"[SIMULATE] - Quantity: {qty_to_buy:.6f} {base_asset}")
-            
-            # Update simulated balance
-            balance['usd'] -= trade_amount
-            print(f"[DEBUG] USDC balance after simulation: {balance['usd']:.8f} (spent {trade_amount} USDC)")
-            positions[symbol] = {
-                'entry': adjusted_price,  # Use slippage-adjusted price
-                'qty': qty_to_buy,
-                'timestamp': time.time(),
-                'trade_time': time.time(),
-                'mode': 'UNIVERSAL_TRANSFER_SIMULATED',
-                'original_amount': trade_amount
-            }
-            
-            # Send alert about simulated trade
-            try:
-                send_alarm_message_safe(
-                    f"🔄 SIMULATED INVESTMENT\n\n"
-                    f"📊 {symbol}\n"
-                    f"💵 Amount: ${trade_amount:.2f} USDC\n"
-                    f"📈 Price: ${adjusted_price:.6f} (with slippage)\n"
-                    f"🔢 Quantity: {qty_to_buy:.6f} {base_asset}\n"
-                    f"💼 Remaining USDC: ${balance['usd']:.2f}\n"
-                    f"⚠️ Mode: Universal Transfer Simulation"
-                )
-            except Exception as e:
-                print(f"[ALERT ERROR] Could not send simulated trade alert: {e}")
-            
-            print(f"[SIMULATE] ✅ Simulated position created for {symbol}")
-            return positions[symbol]
-        
-        else:
-            print(f"[SKIP] Simulated trades disabled. Would buy {qty_to_buy:.6f} {symbol} for ${trade_amount:.2f}")
-            print(f"[INFO] To enable real Universal Transfer trading:")
-            print(f"[INFO] 1. Enable Convert API permissions in Binance")
-            print(f"[INFO] 2. Use external trading platform")
-            print(f"[INFO] 3. Set ALLOW_SIMULATED_TRADES=True for testing")
+            print(f"[CONVERT] Convert API error: {convert_error}, no alternative trading method available")
             return None
         
     except Exception as e:
@@ -2283,51 +2311,111 @@ def cross_asset_trade(from_asset, to_asset, amount, symbol_for_position=None):
         
         print(f"[CROSS-TRADE] Trading {from_asset} -> {to_asset} using {symbol} ({side})")
         
+        # Map asset names to balance dictionary keys
+        asset_to_balance_key = {
+            'BTC': 'btc',
+            'ETH': 'eth', 
+            'USDC': 'usd'  # USDC maps to 'usd' key in balance dict
+        }
+        
         # Check if we have sufficient balance
-        from_balance = balance[from_asset.lower()]
-        if from_balance < amount:
-            print(f"[ERROR] Insufficient {from_asset} balance: {from_balance} < {amount}")
+        balance_key = asset_to_balance_key.get(from_asset)
+        if balance_key is None:
+            print(f"[ERROR] Unknown asset: {from_asset}")
             return None
+        
+        # ✅ STEP 1: Round quantity to comply with Binance LOT_SIZE filter
+        rounded_amount = round_qty(symbol, amount)
+        print(f"[CROSS-TRADE] Original amount: {amount:.8f}, Rounded amount: {rounded_amount:.8f}")
+        
+        if rounded_amount <= 0:
+            print(f"[ERROR] Amount too small after rounding: {rounded_amount}")
+            return None
+            
+        # ✅ STEP 2: Check balance against rounded amount (not original)
+        from_balance = balance[balance_key]
+        if from_balance < rounded_amount:
+            print(f"[ERROR] Insufficient {from_asset} balance: {from_balance:.8f} < {rounded_amount:.8f} (rounded)")
+            return None
+        
+        # ✅ STEP 2: Check minimum notional value
+        min_notional = min_notional_for(symbol)
+        current_price = get_latest_price(symbol)
+        if not current_price:
+            print(f"[ERROR] Could not get current price for {symbol}")
+            return None
+            
+        trade_value = rounded_amount * current_price
+        if trade_value < min_notional:
+            print(f"[ERROR] Trade value ${trade_value:.2f} below minimum notional ${min_notional:.2f}")
+            return None
+        
+        print(f"[CROSS-TRADE] Trade validation passed - Value: ${trade_value:.2f}, Min: ${min_notional:.2f}")
         
         if side == 'BUY':
             # Buying to_asset with from_asset
             if symbol.endswith('USDC'):
                 # Quote currency is USDC
-                order = client.order_market_buy(symbol=symbol, quoteOrderQty=amount)
+                order = client.order_market_buy(symbol=symbol, quoteOrderQty=rounded_amount)
             else:
                 # For ETHBTC, buying ETH with BTC (quote currency is BTC)
-                order = client.order_market_buy(symbol=symbol, quoteOrderQty=amount)
+                order = client.order_market_buy(symbol=symbol, quoteOrderQty=rounded_amount)
         else:
             # Selling from_asset to get to_asset
             if symbol.endswith('USDC'):
-                # Base currency being sold
-                order = client.order_market_sell(symbol=symbol, quantity=amount)
+                # Base currency being sold - use properly rounded quantity
+                order = client.order_market_sell(symbol=symbol, quantity=rounded_amount)
             else:
-                # For ETHBTC, selling ETH to get BTC
-                order = client.order_market_sell(symbol=symbol, quantity=amount)
+                # For ETHBTC, selling ETH to get BTC - use properly rounded quantity
+                order = client.order_market_sell(symbol=symbol, quantity=rounded_amount)
+        
+        print(f"[CROSS-TRADE] Order response keys: {list(order.keys())}")  # Debug: Show available fields
         
         # Update balances based on executed trade
         executed_qty = float(order['executedQty'])
-        avg_price = float(order['cumulativeQuoteQty']) / executed_qty if executed_qty > 0 else 0
+        
+        # ✅ Safe extraction of cumulativeQuoteQty with fallback
+        try:
+            cumulative_quote_qty = float(order['cumulativeQuoteQty'])
+            avg_price = cumulative_quote_qty / executed_qty if executed_qty > 0 else 0
+        except (KeyError, TypeError):
+            # Fallback: calculate using fills if available
+            if 'fills' in order and order['fills']:
+                total_quote = sum(float(fill['price']) * float(fill['qty']) for fill in order['fills'])
+                cumulative_quote_qty = total_quote
+                avg_price = total_quote / executed_qty if executed_qty > 0 else 0
+            else:
+                # Final fallback: use current market price
+                current_price = get_latest_price(symbol)
+                avg_price = current_price or 0
+                cumulative_quote_qty = avg_price * executed_qty
+            
+            print(f"[CROSS-TRADE] Using fallback calculation - CumulativeQuote: {cumulative_quote_qty:.6f}")
+        
+        print(f"[CROSS-TRADE] Order details - ExecutedQty: {executed_qty:.6f}, AvgPrice: {avg_price:.6f}")
+        
+        # Map asset names to balance keys for updates
+        from_balance_key = asset_to_balance_key.get(from_asset)
+        to_balance_key = asset_to_balance_key.get(to_asset)
         
         if side == 'BUY':
             if symbol.endswith('USDC'):
                 # Bought base asset with USDC
-                balance['usd'] -= amount
-                balance[to_asset.lower()] += executed_qty
+                balance['usd'] -= rounded_amount  # Spent USDC (use rounded amount)
+                balance[to_balance_key] += executed_qty  # Received asset
             else:
-                # Bought BTC with ETH
-                balance['eth'] -= amount
-                balance['btc'] += executed_qty
+                # For ETHBTC: buying ETH with BTC
+                balance[from_balance_key] -= rounded_amount  # Spent from_asset (use rounded amount)
+                balance[to_balance_key] += executed_qty  # Received to_asset
         else:
             if symbol.endswith('USDC'):
                 # Sold base asset for USDC
-                balance[from_asset.lower()] -= executed_qty
-                balance['usd'] += float(order['cumulativeQuoteQty'])
+                balance[from_balance_key] -= executed_qty  # Sold from_asset (use executed qty from order)
+                balance['usd'] += cumulative_quote_qty  # Received USDC (use safe value)
             else:
-                # Sold BTC for ETH
-                balance['btc'] -= executed_qty
-                balance['eth'] += float(order['cumulativeQuoteQty'])
+                # For ETHBTC: selling ETH for BTC
+                balance[from_balance_key] -= executed_qty  # Sold from_asset (use executed qty from order)
+                balance[to_balance_key] += cumulative_quote_qty  # Received to_asset (use safe value)
         
         print(f"[CROSS-TRADE] ✅ Executed: {executed_qty:.6f} {symbol} at avg price {avg_price:.6f}")
         print(f"[BALANCE] BTC: {balance['btc']:.6f}, ETH: {balance['eth']:.6f}, USD: {balance['usd']:.2f}")
@@ -2466,31 +2554,85 @@ def sell(symbol, qty):
     """Smart sell function that supports cross-asset trading between BTC, ETH, and USDC."""
     print(f"[SELL] Attempting to sell {symbol}, qty: {qty}")
     
+    # ✅ STEP 1: Fetch live balances before attempting any sell
+    print(f"[BALANCE CHECK] Refreshing balances before sell attempt...")
+    fetch_all_balances()
+    print(f"[BALANCE CHECK] Live balances - BTC: {balance['btc']:.6f}, ETH: {balance['eth']:.6f}, USDC: ${balance['usd']:.2f}")
+    
+    # ✅ STEP 2: Also sync positions with actual Binance balances
+    try:
+        reconcile_positions_with_binance(client, positions, "USDC")
+        print(f"[BALANCE CHECK] Position sync completed")
+    except Exception as e:
+        print(f"[BALANCE CHECK] Warning: Could not sync positions: {e}")
+    
     # For cross-asset trading, we need to decide what to sell and what to receive
     if symbol == 'BTCUSDC':
-        # Selling BTC for USDC
-        if balance['btc'] >= qty:
-            success = cross_asset_trade('BTC', 'USDC', qty)
-            if success:
-                # For selling, we need to return (price, fee, tax) for compatibility
-                current_price = get_latest_price(symbol)
-                return current_price, 0, 0
-            else:
+        # Selling BTC for USDC - with enhanced balance validation
+        print(f"[SELL DEBUG] Position qty: {qty:.8f}, Balance BTC: {balance['btc']:.8f}")
+        
+        # Check if balance is zero but we have a position - sync issue
+        if balance['btc'] == 0 and qty > 0:
+            print(f"[BALANCE SYNC] Detected sync issue - refreshing BTC balance...")
+            try:
+                # Get fresh BTC balance directly from Binance
+                btc_info = client.get_asset_balance(asset="BTC")
+                actual_btc_balance = float(btc_info['free'])
+                balance['btc'] = actual_btc_balance
+                print(f"[BALANCE SYNC] Fresh BTC balance: {actual_btc_balance:.8f}")
+            except Exception as e:
+                print(f"[BALANCE SYNC ERROR] Could not refresh BTC balance: {e}")
                 return None, 0, 0
+        
+        # If we still don't have enough BTC, adjust the sell quantity to available balance
+        available_btc = balance['btc']
+        if available_btc < qty:
+            if available_btc > 0:
+                print(f"[SELL ADJUST] Adjusting sell qty from {qty:.8f} to available {available_btc:.8f}")
+                qty = available_btc
+            else:
+                print(f"[SKIP] No BTC balance available: {available_btc:.8f}")
+                return None, 0, 0
+        
+        success = cross_asset_trade('BTC', 'USDC', qty)
+        if success:
+            # For selling, we need to return (price, fee, tax) for compatibility
+            current_price = get_latest_price(symbol)
+            return current_price, 0, 0
         else:
-            print(f"[SKIP] Insufficient BTC balance: {balance['btc']:.6f} < {qty}")
             return None, 0, 0
     elif symbol == 'ETHUSDC':
-        # Selling ETH for USDC
-        if balance['eth'] >= qty:
-            success = cross_asset_trade('ETH', 'USDC', qty)
-            if success:
-                current_price = get_latest_price(symbol)
-                return current_price, 0, 0
-            else:
+        # Selling ETH for USDC - with enhanced balance validation
+        print(f"[SELL DEBUG] Position qty: {qty:.8f}, Balance ETH: {balance['eth']:.8f}")
+        
+        # Check if balance is zero but we have a position - sync issue
+        if balance['eth'] == 0 and qty > 0:
+            print(f"[BALANCE SYNC] Detected sync issue - refreshing ETH balance...")
+            try:
+                # Get fresh ETH balance directly from Binance
+                eth_info = client.get_asset_balance(asset="ETH")
+                actual_eth_balance = float(eth_info['free'])
+                balance['eth'] = actual_eth_balance
+                print(f"[BALANCE SYNC] Fresh ETH balance: {actual_eth_balance:.8f}")
+            except Exception as e:
+                print(f"[BALANCE SYNC ERROR] Could not refresh ETH balance: {e}")
                 return None, 0, 0
+        
+        # If we still don't have enough ETH, adjust the sell quantity to available balance
+        available_eth = balance['eth']
+        if available_eth < qty:
+            if available_eth > 0:
+                print(f"[SELL ADJUST] Adjusting sell qty from {qty:.8f} to available {available_eth:.8f}")
+                qty = available_eth
+            else:
+                print(f"[SKIP] No ETH balance available: {available_eth:.8f}")
+                return None, 0, 0
+        
+        success = cross_asset_trade('ETH', 'USDC', qty)
+        if success:
+            current_price = get_latest_price(symbol)
+            return current_price, 0, 0
         else:
-            print(f"[SKIP] Insufficient ETH balance: {balance['eth']:.6f} < {qty}")
             return None, 0, 0
     elif symbol == 'ETHBTC':
         # For ETHBTC positions, we need to determine if we're holding BTC or ETH
@@ -2601,33 +2743,18 @@ def sell_with_universal_transfer(symbol, qty):
                     return price, fee, 0
                     
                 else:
-                    print("[CONVERT] Convert API sell failed, falling back to simulation")
+                    print("[CONVERT] Convert API sell failed, no alternative trading method available")
+                    return None, 0, 0
             else:
-                print("[CONVERT] Convert API not available for sell, falling back to simulation")
+                print("[CONVERT] Convert API not available for sell, no alternative trading method available")
+                return None, 0, 0
                 
         except ImportError:
-            print("[CONVERT] Convert API module not available for sell, falling back to simulation")
+            print("[CONVERT] Convert API module not available for sell, no alternative trading method available")
+            return None, 0, 0
         except Exception as convert_error:
-            print(f"[CONVERT] Convert API sell error: {convert_error}, falling back to simulation")
-        
-        # Method 2: Simulate sell
-        print(f"[SIMULATE] Executing simulated sell:")
-        print(f"[SIMULATE] - Symbol: {symbol}")
-        print(f"[SIMULATE] - Quantity: {sell_qty:.6f} {base_asset}")
-        print(f"[SIMULATE] - Price: ${current_price:.6f}")
-        print(f"[SIMULATE] - Value: ${value:.2f} USDC")
-        
-        # Apply realistic slippage for simulation
-        slippage = 0.001  # 0.1% slippage
-        effective_price = current_price * (1 - slippage)
-        effective_value = effective_price * sell_qty
-        
-        # Update simulated balance
-        balance['usd'] += effective_value
-        print(f"[DEBUG] USDC balance after simulated sell: {balance['usd']:.8f} (received {effective_value:.2f} USDC)")
-        
-        print(f"[SIMULATE] ✅ Simulated sell executed for {symbol}")
-        return effective_price, 0, 0
+            print(f"[CONVERT] Convert API sell error: {convert_error}, no alternative trading method available")
+            return None, 0, 0
         
     except Exception as e:
         print(f"[SELL ERROR] {symbol}: {e}")
