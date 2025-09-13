@@ -340,7 +340,7 @@ class WebSocketPriceManager:
             return
         try:
             if symbol not in self.symbols_to_monitor:
-                # Validate symbol format - support ALLOWED_SYMBOLS including BTCETH
+                # Validate symbol format - support ALLOWED_SYMBOLS including ETHBTC
                 if not symbol or not isinstance(symbol, str) or symbol not in ALLOWED_SYMBOLS:
                     print(f"[WEBSOCKET] ❌ Symbol not in ALLOWED_SYMBOLS: {symbol}")
                     return
@@ -838,7 +838,7 @@ def update_websocket_symbols():
         valid_symbols = [s for s in symbols_to_monitor 
                         if s and isinstance(s, str) and s in ALLOWED_SYMBOLS]
         
-        # Limit to maximum 3 symbols for deployment performance (BTCUSDC, ETHUSDC, BTCETH)
+        # Limit to maximum 3 symbols for deployment performance (BTCUSDC, ETHUSDC, ETHBTC)
         valid_symbols = valid_symbols[:3]
         
         if valid_symbols:
@@ -1175,7 +1175,7 @@ def add_performance_monitoring():
     print("[PERFORMANCE] Scheduler delay warnings suppressed")
 
 # Add strict symbol filtering - now supports BTC-ETH cross trading
-ALLOWED_SYMBOLS = {'BTCUSDC', 'ETHUSDC', 'BTCETH'}
+ALLOWED_SYMBOLS = {'BTCUSDC', 'ETHUSDC', 'ETHBTC'}
 
 def get_trading_status():
     """Get current trading status summary"""
@@ -2262,9 +2262,9 @@ def buy_with_universal_transfer(symbol, amount=None):
 def determine_trading_pair(from_asset, to_asset):
     """Determine the correct trading pair and side for cross-asset trading"""
     if from_asset == 'BTC' and to_asset == 'ETH':
-        return 'BTCETH', 'SELL'  # Sell BTC to get ETH
+        return 'ETHBTC', 'BUY'   # Buy ETH with BTC (ETH is base, BTC is quote)
     elif from_asset == 'ETH' and to_asset == 'BTC':
-        return 'BTCETH', 'BUY'   # Buy BTC with ETH
+        return 'ETHBTC', 'SELL'  # Sell ETH to get BTC
     elif from_asset == 'BTC' and to_asset == 'USDC':
         return 'BTCUSDC', 'SELL'
     elif from_asset == 'USDC' and to_asset == 'BTC':
@@ -2295,7 +2295,7 @@ def cross_asset_trade(from_asset, to_asset, amount, symbol_for_position=None):
                 # Quote currency is USDC
                 order = client.order_market_buy(symbol=symbol, quoteOrderQty=amount)
             else:
-                # For BTCETH, buying BTC with ETH (quote currency is ETH)
+                # For ETHBTC, buying ETH with BTC (quote currency is BTC)
                 order = client.order_market_buy(symbol=symbol, quoteOrderQty=amount)
         else:
             # Selling from_asset to get to_asset
@@ -2303,7 +2303,7 @@ def cross_asset_trade(from_asset, to_asset, amount, symbol_for_position=None):
                 # Base currency being sold
                 order = client.order_market_sell(symbol=symbol, quantity=amount)
             else:
-                # For BTCETH, selling BTC to get ETH
+                # For ETHBTC, selling ETH to get BTC
                 order = client.order_market_sell(symbol=symbol, quantity=amount)
         
         # Update balances based on executed trade
@@ -2372,7 +2372,7 @@ def buy(symbol, amount=None):
         else:
             print(f"[SKIP] Insufficient USDC balance: {balance['usd']:.2f} < {amount}")
             return None
-    elif symbol == 'BTCETH':
+    elif symbol == 'ETHBTC':
         # Decide whether to use BTC or ETH to buy the other
         # Strategy: Use whichever asset we have more of (in USD value)
         btc_price = get_latest_price('BTCUSDC')
@@ -2401,7 +2401,7 @@ def buy(symbol, amount=None):
             eth_amount = min_trade_value / eth_price
             return cross_asset_trade('ETH', 'BTC', eth_amount, symbol_for_position=symbol)
         else:
-            print(f"[SKIP] Insufficient balance for BTCETH trade. BTC: ${btc_value:.2f}, ETH: ${eth_value:.2f}")
+            print(f"[SKIP] Insufficient balance for ETHBTC trade. BTC: ${btc_value:.2f}, ETH: ${eth_value:.2f}")
             return None
     else:
         print(f"[ERROR] Unsupported symbol for cross-asset trading: {symbol}")
@@ -2492,8 +2492,8 @@ def sell(symbol, qty):
         else:
             print(f"[SKIP] Insufficient ETH balance: {balance['eth']:.6f} < {qty}")
             return None, 0, 0
-    elif symbol == 'BTCETH':
-        # For BTCETH positions, we need to determine if we're holding BTC or ETH
+    elif symbol == 'ETHBTC':
+        # For ETHBTC positions, we need to determine if we're holding BTC or ETH
         # Check which asset we actually have in our position
         pos = positions.get(symbol, {})
         if not pos:
