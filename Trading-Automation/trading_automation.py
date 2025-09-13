@@ -27,7 +27,15 @@ def patched_get_localzone():
 
 apscheduler.util.get_localzone = patched_get_localzone
 
-BASE_ASSET = 'USDC'
+# Trading mode configuration
+TRADING_MODE = 'AUTO_DETECT'  # Options: 'SPOT', 'UNIVERSAL_TRANSFER', 'SIMULATE', 'AUTO_DETECT'
+ALLOW_SIMULATED_TRADES = True  # Set to False to disable simulated trades
+
+# Universal Transfer configuration
+ENABLE_UNIVERSAL_TRANSFER = True  # Enable Universal Transfer mode
+UT_CONVERSION_SLIPPAGE = 0.001   # 0.1% slippage allowance for conversions
+
+BASE_ASSET = ['BTC', 'ETH']  # Support multiple base assets
 DUST_LIMIT = 0.4
 
 MIN_MARKETCAP = 69_502  
@@ -36,13 +44,13 @@ MIN_VOLUME_ETH = 40_000     # ETH has moderate volume
 MIN_VOLUME_DEFAULT = 300_000  # For other altcoins
 MIN_VOLATILITY = 0.0025
 
-MIN_1M = 0.005   # 0.5% in 1m
-MIN_5M = 0.01   # 1% in 5m
-MIN_15M = 0.02   # 2% in 15m
+MIN_1M = 0.003   # 0.3% in 1m (lower from 0.5%)
+MIN_5M = 0.007   # 0.7% in 5m (lower from 1.0%)
+MIN_15M = 0.015  # 1.5% in 15m (lower from 2.0%)
 
-# New indicator thresholds
-RSI_OVERBOUGHT = 70
-VOLUME_SPIKE_MULTIPLIER = 2.0  # 2x average volume
+# New indicator thresholds - LESS STRICT
+RSI_OVERBOUGHT = 60  # Lower from 70 to 60
+VOLUME_SPIKE_MULTIPLIER = 1.5  # Lower from 2.0 to 1.5
 MA_PERIODS_SHORT = 5
 MA_PERIODS_LONG = 20
 
@@ -64,7 +72,7 @@ except Exception as e:
     print(f"[ERROR] Could not sync time with Binance server: {e}")
 
 positions = {}        # single global positions dict
-balance = {'usd': 0.0}
+balance = {'btc': 0.0, 'eth': 0.0, 'usd': 0.0}  # Track BTC, ETH, and USDC balances
 trade_log = []
 price_cache = {}      # Real-time price cache from WebSocket
 price_cache_lock = threading.Lock()  # Thread safety for price cache
@@ -524,8 +532,30 @@ def reconcile_positions_with_binance(client, positions, quote_asset="USDC"):
     except Exception as e:
         print(f"[SYNC ERROR] Failed to reconcile with Binance: {e}")
 
+def fetch_all_balances():
+    """Update all asset balances (BTC, ETH, USDC) from Binance live."""
+    try:
+        # Fetch BTC balance
+        btc_info = client.get_asset_balance(asset="BTC")
+        balance['btc'] = float(btc_info['free'])
+        
+        # Fetch ETH balance
+        eth_info = client.get_asset_balance(asset="ETH")
+        balance['eth'] = float(eth_info['free'])
+        
+        # Fetch USDC balance
+        usdc_info = client.get_asset_balance(asset="USDC")
+        balance['usd'] = float(usdc_info['free'])
+        
+        print(f"[BALANCE] Live balances - BTC: {balance['btc']:.6f}, ETH: {balance['eth']:.6f}, USDC: ${balance['usd']:.2f}")
+    except Exception as e:
+        print(f"[ERROR] Fetching balances: {e}")
+        balance['btc'] = 0
+        balance['eth'] = 0
+        balance['usd'] = 0
+
 def fetch_usdc_balance():
-    """Update the global USDC balance from Binance live."""
+    """Update the global USDC balance from Binance live. (Legacy function - use fetch_all_balances instead)"""
     try:
         asset_info = client.get_asset_balance(asset="USDC")
         free = float(asset_info['free'])
@@ -566,8 +596,8 @@ def diagnose_investment_failure(symbol="ETHUSDC"):
         print(f"   ❌ Too many positions - limit reached")
         return
     
-    # 4. Check USDC balance and taxes
-    fetch_usdc_balance()
+    # 4. Check all balances (BTC, ETH, USDC) and taxes
+    fetch_all_balances()
     usdc_balance = balance['usd']
     
     # Calculate taxes owed
@@ -821,6 +851,38 @@ def update_websocket_symbols():
         print(f"[WEBSOCKET UPDATE ERROR] {e}")
         # Don't crash the bot, just continue with current monitoring
 
+def detect_trading_mode():
+    """Detect the optimal trading mode based on API permissions."""
+    try:
+        account = client.get_account()
+        permissions = account.get('permissions', [])
+        
+        # Check for SPOT trading
+        if 'SPOT' in permissions:
+            print("[TRADING MODE] SPOT trading detected")
+            return 'SPOT'
+        
+        # Check for Universal Transfer permissions
+        trade_groups = [p for p in permissions if p.startswith('TRD_GRP_')]
+        if trade_groups:
+            print(f"[TRADING MODE] Universal Transfer detected: {trade_groups}")
+            return 'UNIVERSAL_TRANSFER'
+        
+        # Fallback to simulation mode
+        print("[TRADING MODE] No trading permissions detected, using simulation mode")
+        return 'SIMULATE'
+        
+    except Exception as e:
+        print(f"[TRADING MODE ERROR] Could not detect trading mode: {e}")
+        return 'SIMULATE'
+
+def get_effective_trading_mode():
+    """Get the effective trading mode based on configuration and detection."""
+    if TRADING_MODE == 'AUTO_DETECT':
+        return detect_trading_mode()
+    else:
+        return TRADING_MODE
+
 def cleanup_websocket_monitoring():
     """Clean up WebSocket monitoring on shutdown with proper session cleanup."""
     global ws_price_manager
@@ -860,6 +922,118 @@ def cleanup_websocket_monitoring():
             ws_price_manager = None
     else:
         print("[WEBSOCKET] No active monitoring to clean up")
+
+def test_api_connection():
+    """Test Binance API connection and permissions."""
+    print("\n=== BINANCE API CONNECTION TEST ===")
+    
+    try:
+        # Test 1: Check server connectivity
+        print("1. Testing server connectivity...")
+        server_time = client.get_server_time()
+        print(f"   ✅ Server time: {datetime.fromtimestamp(server_time['serverTime']/1000)}")
+        
+        # Test 2: Check API key validity
+        print("2. Testing API key validity...")
+        account = client.get_account()
+        print(f"   ✅ Account status: {account.get('accountType', 'SPOT')}")
+        
+        # Test 3: Check trading permissions
+        print("3. Testing trading permissions...")
+        permissions = account.get('permissions', [])
+        print(f"   Permissions: {permissions}")
+        
+        # Check for different types of trading permissions
+        has_spot = 'SPOT' in permissions
+        has_margin = 'MARGIN' in permissions
+        has_futures = 'FUTURES' in permissions
+        has_leveraged = 'LEVERAGED' in permissions
+        
+        # Check for trade group permissions (Universal Transfer)
+        trade_groups = [p for p in permissions if p.startswith('TRD_GRP_')]
+        
+        if has_spot:
+            print("   ✅ SPOT trading enabled")
+        elif trade_groups:
+            print(f"   ✅ Trade Group permissions: {trade_groups}")
+            print("   ℹ️  Universal Transfer permissions detected")
+        else:
+            print("   ❌ No trading permissions detected")
+            
+        # Additional permission details
+        if has_margin:
+            print("   ✅ MARGIN trading enabled")
+        if has_futures:
+            print("   ✅ FUTURES trading enabled")
+        if has_leveraged:
+            print("   ✅ LEVERAGED trading enabled")
+        
+        # Test 4: Check USDC balance
+        print("4. Testing balance access...")
+        usdc_balance = client.get_asset_balance(asset='USDC')
+        print(f"   ✅ USDC balance: {usdc_balance['free']}")
+        
+        # Test 5: Check symbol info
+        print("5. Testing symbol info access...")
+        eth_info = client.get_symbol_info('ETHUSDC')
+        print(f"   ✅ ETHUSDC status: {eth_info['status']}")
+        
+        # Test 6: Test order placement (TEST ORDER - not real)
+        print("6. Testing order permissions (test order)...")
+        try:
+            test_order = client.create_test_order(
+                symbol='ETHUSDC',
+                side='BUY',
+                type='MARKET',
+                quoteOrderQty='10.0'
+            )
+            print("   ✅ Test order successful - trading permissions OK")
+        except Exception as test_error:
+            print(f"   ❌ Test order failed: {test_error}")
+            if "Invalid API-key" in str(test_error):
+                print("   → API key lacks trading permissions")
+            elif "IP" in str(test_error):
+                print("   → IP address not whitelisted")
+        
+        # Test 7: Test Universal Transfer (if available)
+        if trade_groups:
+            print("7. Testing Universal Transfer capabilities...")
+            try:
+                # Test transfer from SPOT to SPOT (essentially a no-op to test permissions)
+                # This is a read-only test that shouldn't actually move funds
+                transfer_history = client.get_universal_transfer_history(type='MAIN_SPOT', limit=1)
+                print("   ✅ Universal Transfer read access works")
+                print("   ℹ️  Universal Transfer permissions can be used for trading")
+            except Exception as transfer_error:
+                if "Invalid symbol" not in str(transfer_error) and "Permission denied" not in str(transfer_error):
+                    print(f"   ⚠️  Universal Transfer test: {transfer_error}")
+                else:
+                    print("   ❌ Universal Transfer permissions insufficient")
+        
+        # Test 8: Alternative order methods for Universal Transfer
+        if trade_groups and not has_spot:
+            print("8. Testing alternative order methods...")
+            try:
+                # Try using OCO order as an alternative (some APIs allow this with Universal Transfer)
+                recent_trades = client.get_recent_trades(symbol='ETHUSDC', limit=1)
+                if recent_trades:
+                    print("   ✅ Market data access works - can implement trading logic")
+                    print("   ℹ️  Consider using Universal Transfer with manual order management")
+            except Exception as alt_error:
+                print(f"   ⚠️  Alternative methods test: {alt_error}")
+        
+        print("\n✅ API connection test completed")
+        return True
+        
+    except Exception as e:
+        print(f"❌ API test failed: {e}")
+        if "Invalid API-key" in str(e):
+            print("→ Check: API key, secret, and permissions in Binance")
+        elif "IP" in str(e):
+            print("→ Check: IP whitelist settings in Binance API management")
+        elif "timestamp" in str(e).lower():
+            print("→ Check: System time synchronization")
+        return False
 
 def test_websocket_connection():
     """Test WebSocket connection and provide deployment diagnostics."""
@@ -1000,8 +1174,8 @@ def add_performance_monitoring():
     
     print("[PERFORMANCE] Scheduler delay warnings suppressed")
 
-# Add strict symbol filtering
-ALLOWED_SYMBOLS = {'BTCUSDC', 'ETHUSDC'}
+# Add strict symbol filtering - now supports BTC-ETH cross trading
+ALLOWED_SYMBOLS = {'BTCUSDC', 'ETHUSDC', 'BTCETH'}
 
 def get_trading_status():
     """Get current trading status summary"""
@@ -1283,7 +1457,8 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
     text = update.message.text
     sync_positions_with_binance(client, positions)
 
-    if text == "📊 Balance":
+    # Support both button text and commands
+    if text in ["📊 Balance", "/balance", "/bal"]:
         fetch_usdc_balance()
 
         usdc = balance['usd']
@@ -1316,19 +1491,19 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
 
 
     
-    elif text == "💼 Investments":
+    elif text in ["💼 Investments", "/investments", "/inv", "/positions"]:
         msg = format_investments_message(positions, get_latest_price, DUST_LIMIT)
         await send_with_keyboard(update, msg)
     
-    elif text == "⏸ Pause Trading":
+    elif text in ["⏸ Pause Trading", "/pause"]:
         set_paused(True)
         await send_with_keyboard(update, "⏸ Trading is now *paused*. Bot will not auto-invest or auto-sell until resumed.", parse_mode='Markdown')
 
-    elif text == "▶️ Resume Trading":
+    elif text in ["▶️ Resume Trading", "/resume", "/start"]:
         set_paused(False)
         await send_with_keyboard(update, "▶️ Trading is *resumed*. Bot will continue auto-investing and auto-selling.", parse_mode='Markdown')
 
-    elif text == "📝 Trade Log":
+    elif text in ["📝 Trade Log", "/log", "/trades"]:
         log = trade_log
         if not log:
             await send_with_keyboard(update, "No trades yet.")
@@ -1356,7 +1531,7 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
                     continue
             await send_with_keyboard(update, f"```{msg}```", parse_mode='Markdown')
     
-    elif text == "🔍 Diagnose":
+    elif text in ["🔍 Diagnose", "/diagnose", "/diag"]:
         await send_with_keyboard(update, "🔍 Running investment diagnostic for ETHUSDC...")
         
         # Capture diagnostic output
@@ -1381,7 +1556,7 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         else:
             await send_with_keyboard(update, f"```\nDiagnostic Report:\n{diagnostic_text}\n```", parse_mode='Markdown')
     
-    elif text == "🔄 WebSocket Status":
+    elif text in ["🔄 WebSocket Status", "/websocket", "/ws"]:
         status = get_realtime_price_summary()
         msg = (
             f"🔄 **WebSocket Price Monitoring Status**\n\n"
@@ -1407,7 +1582,7 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         
         await send_with_keyboard(update, msg, parse_mode='Markdown')
     
-    elif text == "⚡ Check Momentum":
+    elif text in ["⚡ Check Momentum", "/momentum", "/check"]:
         await send_with_keyboard(update, "⚡ Running manual momentum check...")
         
         try:
@@ -1422,58 +1597,7 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         except Exception as e:
             await send_with_keyboard(update, f"❌ Momentum check failed: {str(e)}")
     
-    elif text == "� Trading Status":
-        await send_with_keyboard(update, "� Getting trading status...")
-        
-        # Capture debug output
-        import io
-        import sys
-        
-        old_stdout = sys.stdout
-        sys.stdout = captured_output = io.StringIO()
-        
-        try:
-            get_trading_status()
-            debug_text = captured_output.getvalue()
-        finally:
-            sys.stdout = old_stdout
-        
-        # Send debug info
-        if len(debug_text) > 4000:
-            # Split long messages
-            chunks = [debug_text[i:i+4000] for i in range(0, len(debug_text), 4000)]
-            for i, chunk in enumerate(chunks):
-                await send_with_keyboard(update, f"```\nTrading Status ({i+1}/{len(chunks)}):\n{chunk}\n```", parse_mode='Markdown')
-        else:
-            await send_with_keyboard(update, f"```\nTrading Status:\n{debug_text}\n```", parse_mode='Markdown')
-    
-    elif text == "⚡ Fast Check":
-        await send_with_keyboard(update, "⚡ Running fast momentum check for immediate opportunities...")
-        
-        try:
-            fetch_usdc_balance()
-            investable = balance['usd'] - sum(float(tr.get('Tax', 0)) for tr in trade_log[-20:] if float(tr.get('Tax', 0)) > 0)
-            
-            if investable < 10:
-                await send_with_keyboard(update, "❌ Not enough USDC for fast investment check")
-                return
-                
-            # Run fast momentum check
-            start_time = time.time()
-            fast_momentum_invest(investable)
-            end_time = time.time()
-            
-            processing_time = end_time - start_time
-            await send_with_keyboard(update, 
-                f"✅ Fast momentum check completed in {processing_time:.2f} seconds\n"
-                f"💰 Checked ${investable:.2f} USDC for immediate opportunities")
-        except Exception as e:
-            await send_with_keyboard(update, f"❌ Fast check failed: {str(e)}")
-    elif text in ["/refresh", "🔄 Refresh Keyboard"]:
-        await send_with_keyboard(update, "🔄 Keyboard refreshed! You should now see the updated buttons.", 
-                                reply_markup=ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True))
-    
-    elif text in ["📊 Trading Status", "� Trading Status"]:  # Handle both old and new button text
+    elif text in ["📊 Trading Status", "/status", "/trading"]:
         await send_with_keyboard(update, "📊 Getting trading status...")
         
         # Capture debug output
@@ -1498,8 +1622,238 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         else:
             await send_with_keyboard(update, f"```\nTrading Status:\n{debug_text}\n```", parse_mode='Markdown')
     
+    elif text in ["⚡ Fast Check", "/fast", "/quick"]:
+        await send_with_keyboard(update, "⚡ Running fast momentum check for immediate opportunities...")
+        
+        try:
+            fetch_usdc_balance()
+            investable = balance['usd'] - sum(float(tr.get('Tax', 0)) for tr in trade_log[-20:] if float(tr.get('Tax', 0)) > 0)
+            
+            if investable < 10:
+                await send_with_keyboard(update, "❌ Not enough USDC for fast investment check")
+                return
+                
+            # Run fast momentum check
+            start_time = time.time()
+            fast_momentum_invest(investable)
+            end_time = time.time()
+            
+            processing_time = end_time - start_time
+            await send_with_keyboard(update, 
+                f"✅ Fast momentum check completed in {processing_time:.2f} seconds\n"
+                f"💰 Checked ${investable:.2f} USDC for immediate opportunities")
+        except Exception as e:
+            await send_with_keyboard(update, f"❌ Fast check failed: {str(e)}")
+    
+    elif text in ["🔧 API Test", "/apitest", "/api"]:
+        await send_with_keyboard(update, "🔧 Running Binance API connection test...")
+        
+        # Capture API test output
+        old_stdout = sys.stdout
+        sys.stdout = captured_output = io.StringIO()
+        
+        try:
+            api_test_result = test_api_connection()
+        finally:
+            sys.stdout = old_stdout
+        
+        api_test_text = captured_output.getvalue()
+        
+        # Add trading mode info
+        trading_mode = get_effective_trading_mode()
+        mode_info = f"\n\n🔄 **Trading Mode: {trading_mode}**\n"
+        
+        if trading_mode == 'SPOT':
+            mode_info += "✅ Full SPOT trading enabled"
+        elif trading_mode == 'UNIVERSAL_TRANSFER':
+            mode_info += "🔄 Universal Transfer mode (simulated trading)"
+        else:
+            mode_info += "⚠️ Simulation mode only"
+        
+        api_test_text += mode_info
+        
+        # Send API test results
+        if len(api_test_text) > 4000:
+            chunks = [api_test_text[i:i+4000] for i in range(0, len(api_test_text), 4000)]
+            for i, chunk in enumerate(chunks):
+                await send_with_keyboard(update, f"```\nAPI Test ({i+1}/{len(chunks)}):\n{chunk}\n```", parse_mode='Markdown')
+        else:
+            await send_with_keyboard(update, f"```\nAPI Test Results:\n{api_test_text}\n```", parse_mode='Markdown')
+    
+    elif text in ["/tradingmode", "/mode"]:
+        trading_mode = get_effective_trading_mode()
+        mode_msg = f"""
+🔄 **Current Trading Mode: {trading_mode}**
+
+**Mode Details:**
+"""
+        
+        if trading_mode == 'SPOT':
+            mode_msg += """
+✅ **SPOT Trading Mode**
+• Full trading permissions active
+• Real orders will be executed
+• Direct market buy/sell available
+"""
+        elif trading_mode == 'UNIVERSAL_TRANSFER':
+            # Check Convert API status
+            convert_available = False
+            try:
+                from convert_api import test_convert_api_access
+                convert_available = test_convert_api_access()
+            except Exception:
+                pass
+            
+            mode_msg += f"""
+🔄 **Universal Transfer Mode**
+• Using TRD_GRP permissions
+• Convert API: {'✅ Available' if convert_available else '❌ Not enabled'}
+• {'Real conversions will be used' if convert_available else 'Simulated trading with real market data'}
+• Accurate price tracking and momentum detection
+
+**{('Convert API Options' if convert_available else 'Enable Convert API') + ':'}**
+{'• ✅ Real conversions enabled!' if convert_available else '• Go to Binance API settings'}
+{'• Monitor conversion orders in Telegram' if convert_available else '• Enable Convert permissions'}
+{'• Real balance updates' if convert_available else '• Consider manual trading for real execution'}
+• Use simulation for strategy testing
+"""
+        else:
+            mode_msg += """
+⚠️ **Simulation Mode**
+• No trading permissions detected
+• All trades are simulated only
+• Enable SPOT or Universal Transfer permissions
+"""
+        
+        await send_with_keyboard(update, mode_msg, parse_mode='Markdown')
+    
+    elif text in ["/convertapi", "/convert"]:
+        try:
+            from convert_api import test_convert_api_access, get_convert_quote
+            
+            convert_msg = "🔄 **Convert API Status**\n\n"
+            
+            # Test API access
+            api_access = test_convert_api_access()
+            convert_msg += f"**API Access:** {'✅ Available' if api_access else '❌ Not available'}\n\n"
+            
+            if api_access:
+                # Test a small quote
+                try:
+                    quote = get_convert_quote('USDC', 'ETH', 1.0)
+                    if quote:
+                        convert_msg += f"""**Quote Test:** ✅ Working
+• Rate: {quote.get('ratio', 'N/A')}
+• From: {quote.get('fromAmount')} {quote.get('fromAsset')}
+• To: {quote.get('toAmount')} {quote.get('toAsset')}
+
+**Status:** 🎉 Convert API fully functional!
+Real conversions will be used for trading."""
+                    else:
+                        convert_msg += """**Quote Test:** ❌ Failed
+**Issue:** Convert permissions not enabled
+
+**To Enable:**
+1. Go to Binance API Management
+2. Edit your API key
+3. Enable "Convert" permissions
+4. Save and wait a few minutes"""
+                except Exception as e:
+                    convert_msg += f"""**Quote Test:** ❌ Error
+**Error:** {str(e)[:100]}...
+
+**Solution:** Enable Convert API permissions"""
+            else:
+                convert_msg += """**Issue:** Cannot access Convert API
+
+**Solution:** Enable Convert permissions in Binance API settings"""
+            
+            await send_with_keyboard(update, convert_msg, parse_mode='Markdown')
+            
+        except ImportError:
+            await send_with_keyboard(update, "❌ Convert API module not available")
+        except Exception as e:
+            await send_with_keyboard(update, f"❌ Error checking Convert API: {e}")
+    
+    elif text in ["/refresh", "🔄 Refresh Keyboard"]:
+        await send_with_keyboard(update, "🔄 Keyboard refreshed! You should now see the updated buttons.", 
+                                reply_markup=ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True))
+    
+    elif text in ["/help", "/commands"]:
+        trading_mode = get_effective_trading_mode()
+        mode_status = f"""🔄 **Current Trading Mode: {trading_mode}**
+{'✅ Real trading permissions active' if trading_mode == 'SPOT' else '🔄 Universal Transfer mode (simulated)' if trading_mode == 'UNIVERSAL_TRANSFER' else '⚠️ Simulation mode only'}
+
+"""
+        
+        help_msg = mode_status + """**Available Commands:**
+
+💰 **Finance & Balance:**
+• `/balance` or `/bal` - Check USDC balance
+• `/investments` or `/inv` - View current positions
+
+⚡ **Trading Controls:**
+• `/pause` - Pause all trading
+• `/resume` or `/start` - Resume trading
+• `/fast` or `/quick` - Quick momentum check
+
+📊 **Status & Analysis:**
+• `/status` or `/trading` - Trading status
+• `/momentum` or `/check` - Check momentum
+• `/websocket` or `/ws` - WebSocket status
+• `/apitest` or `/api` - Test Binance API
+• `/tradingmode` or `/mode` - Check trading mode
+• `/convertapi` or `/convert` - Check Convert API status
+
+📝 **Logs & Diagnostics:**
+• `/log` or `/trades` - View trade history
+• `/diagnose` or `/diag` - Investment diagnostic
+
+🔧 **Other:**
+• `/help` or `/commands` - Show this help
+• `/refresh` - Refresh keyboard
+
+You can use either the buttons or type these commands!
+        """
+        await send_with_keyboard(update, help_msg, parse_mode='Markdown')
+    
+    elif text in ["📈 Status", "/overview"]:
+        # Combine multiple status checks into one overview
+        await send_with_keyboard(update, "📈 Getting complete status overview...")
+        
+        fetch_usdc_balance()
+        usdc = balance['usd']
+        total_invested = sum(get_latest_price(s) * p.get('qty', 0) 
+                           for s, p in positions.items() 
+                           if get_latest_price(s) and p.get('qty', 0) * get_latest_price(s) > DUST_LIMIT)
+        
+        status_msg = f"""
+**📈 Trading Bot Overview**
+
+**Financial Status:**
+• USDC Balance: ${usdc:.2f}
+• Total Invested: ${total_invested:.2f}
+• Portfolio Value: ${usdc + total_invested:.2f}
+
+**Trading Status:**
+• Bot State: {'⏸️ PAUSED' if is_paused() else '▶️ ACTIVE'}
+• Active Positions: {len([p for s, p in positions.items() if get_latest_price(s) and p.get('qty', 0) * get_latest_price(s) > DUST_LIMIT])}
+• Market Risk: {'🔴 HIGH' if market_is_risky() else '🟢 NORMAL'}
+
+**WebSocket Status:**
+• Connection: {'🟢 Active' if ws_price_manager and ws_price_manager._running else '🔴 Inactive'}
+• Monitored Symbols: {len(ws_price_manager.get_monitored_symbols()) if ws_price_manager else 0}
+
+Type `/help` for all available commands.
+        """
+        await send_with_keyboard(update, status_msg, parse_mode='Markdown')
+    
     else:
-        await send_with_keyboard(update, "Unknown action.")
+        # Show available commands if unknown command
+        if text.startswith('/'):
+            await send_with_keyboard(update, "❓ Unknown command. Type `/help` to see available commands.")
+        else:
+            await send_with_keyboard(update, "❓ Unknown action. Type `/help` to see available commands.")
 
 def sync_positions_with_binance(client, positions, quote_asset="USDC"):
     """Keeps local positions up-to-date with live Binance balances."""
@@ -1541,14 +1895,26 @@ main_keyboard = [
     ["⏸ Pause Trading", "▶️ Resume Trading"],
     ["📝 Trade Log", "🔍 Diagnose"],
     ["🔄 WebSocket Status", "⚡ Check Momentum"],
-    ["� Trading Status", "⚡ Fast Check"],
-    ["📈 Status"]
+    ["📊 Trading Status", "⚡ Fast Check"],
+    ["🔧 API Test", "📈 Status"]
 ]
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    welcome_msg = """
+🤖 **Trading Bot Started!**
+
+**Quick Commands:**
+• `/balance` - Check balance
+• `/inv` - View investments  
+• `/status` - Trading status
+• `/help` - All commands
+
+Use the buttons below or type commands directly!
+    """
     await send_with_keyboard(
         update,
-        "Welcome! Use the buttons below\n",
+        welcome_msg,
+        parse_mode='Markdown',
         reply_markup=ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
     )
 
@@ -1659,35 +2025,328 @@ def quote_precision_for(symbol):
     except Exception:
         return 2
 
-def buy(symbol, amount=None):
-    print(f"[DEBUG] Actual USDC balance before buy: {balance['usd']}")
+def buy_with_universal_transfer(symbol, amount=None):
+    """Alternative buy function using Universal Transfer permissions when SPOT trading is not available."""
+    print(f"[UNIVERSAL TRANSFER] Attempting buy for {symbol}: amount=${amount}")
+    
     try:
         precision = quote_precision_for(symbol)
         trade_amount = round(amount, precision)
         min_notional = min_notional_for(symbol)
-        print(f"[DEBUG] Attempting to buy {symbol}: trade_amount=${trade_amount}, min_notional=${min_notional}")
+        
+        print(f"[UNIVERSAL TRANSFER] {symbol}: trade_amount=${trade_amount}, min_notional=${min_notional}")
+        
         if trade_amount < min_notional:
             print(f"[SKIP] {symbol}: Trade amount (${trade_amount}) < MIN_NOTIONAL (${min_notional})")
             return None
-        # Let Binance handle rounding/fees
+        
+        # Get current market price
+        current_price = get_latest_price(symbol)
+        if not current_price:
+            print(f"[ERROR] Could not get current price for {symbol}")
+            return None
+        
+        # Calculate quantity with slippage
+        adjusted_price = current_price * (1 + UT_CONVERSION_SLIPPAGE)  # Add slippage
+        qty_to_buy = trade_amount / adjusted_price
+        qty_to_buy = round_qty(symbol, qty_to_buy)
+        
+        if qty_to_buy <= 0:
+            print(f"[ERROR] Invalid quantity calculated: {qty_to_buy}")
+            return None
+        
+        base_asset = symbol.replace('USDC', '')
+        
+        # Method 1: Try using Binance Convert API (if available)
+        try:
+            from convert_api import convert_usdc_to_crypto, test_convert_api_access
+            
+            # Check if Convert API is available
+            if test_convert_api_access():
+                print("[CONVERT] Attempting real conversion via Convert API...")
+                
+                convert_result = convert_usdc_to_crypto(symbol, trade_amount)
+                if convert_result and convert_result.get('success'):
+                    print(f"[CONVERT] ✅ Real conversion successful!")
+                    print(f"[CONVERT] Order ID: {convert_result.get('orderId')}")
+                    print(f"[CONVERT] Converted: {convert_result.get('fromAmount')} USDC -> {convert_result.get('toAmount')} {convert_result.get('toAsset')}")
+                    
+                    # Update actual balance (deduct USDC spent)
+                    balance['usd'] -= trade_amount
+                    print(f"[DEBUG] USDC balance after real conversion: {balance['usd']:.8f} (spent {trade_amount} USDC)")
+                    
+                    # Store real position
+                    positions[symbol] = {
+                        'entry': convert_result.get('rate', adjusted_price),
+                        'qty': convert_result.get('toAmount', qty_to_buy),
+                        'timestamp': time.time(),
+                        'trade_time': time.time(),
+                        'mode': 'CONVERT_API_REAL',
+                        'original_amount': trade_amount,
+                        'order_id': convert_result.get('orderId'),
+                        'real_trade': True
+                    }
+                    
+                    # Send alert about real trade
+                    try:
+                        send_alarm_message_safe(
+                            f"✅ REAL CONVERSION EXECUTED\n\n"
+                            f"📊 {symbol}\n"
+                            f"💵 Amount: ${trade_amount:.2f} USDC\n"
+                            f"📈 Rate: {convert_result.get('rate', 'N/A')}\n"
+                            f"🔢 Received: {convert_result.get('toAmount'):.6f} {base_asset}\n"
+                            f"💼 Remaining USDC: ${balance['usd']:.2f}\n"
+                            f"🆔 Order ID: {convert_result.get('orderId')}\n"
+                            f"✅ Mode: Convert API (Real Trading)"
+                        )
+                    except Exception as e:
+                        print(f"[ALERT ERROR] Could not send real trade alert: {e}")
+                    
+                    print(f"[CONVERT] ✅ Real position created for {symbol}")
+                    return positions[symbol]
+                    
+                else:
+                    print("[CONVERT] Convert API call failed, falling back to simulation")
+            else:
+                print("[CONVERT] Convert API not available, falling back to simulation")
+                
+        except ImportError:
+            print("[CONVERT] Convert API module not available, falling back to simulation")
+        except Exception as convert_error:
+            print(f"[CONVERT] Convert API error: {convert_error}, falling back to simulation")
+        
+        # Method 2: Simulated trading with accurate market data
+        if ALLOW_SIMULATED_TRADES:
+            print(f"[SIMULATE] Executing simulated trade:")
+            print(f"[SIMULATE] - Symbol: {symbol}")
+            print(f"[SIMULATE] - USDC Amount: ${trade_amount:.2f}")
+            print(f"[SIMULATE] - Market Price: ${current_price:.6f}")
+            print(f"[SIMULATE] - Price with Slippage: ${adjusted_price:.6f}")
+            print(f"[SIMULATE] - Quantity: {qty_to_buy:.6f} {base_asset}")
+            
+            # Update simulated balance
+            balance['usd'] -= trade_amount
+            print(f"[DEBUG] USDC balance after simulation: {balance['usd']:.8f} (spent {trade_amount} USDC)")
+            positions[symbol] = {
+                'entry': adjusted_price,  # Use slippage-adjusted price
+                'qty': qty_to_buy,
+                'timestamp': time.time(),
+                'trade_time': time.time(),
+                'mode': 'UNIVERSAL_TRANSFER_SIMULATED',
+                'original_amount': trade_amount
+            }
+            
+            # Send alert about simulated trade
+            try:
+                send_alarm_message_safe(
+                    f"🔄 SIMULATED INVESTMENT\n\n"
+                    f"📊 {symbol}\n"
+                    f"💵 Amount: ${trade_amount:.2f} USDC\n"
+                    f"📈 Price: ${adjusted_price:.6f} (with slippage)\n"
+                    f"🔢 Quantity: {qty_to_buy:.6f} {base_asset}\n"
+                    f"💼 Remaining USDC: ${balance['usd']:.2f}\n"
+                    f"⚠️ Mode: Universal Transfer Simulation"
+                )
+            except Exception as e:
+                print(f"[ALERT ERROR] Could not send simulated trade alert: {e}")
+            
+            print(f"[SIMULATE] ✅ Simulated position created for {symbol}")
+            return positions[symbol]
+        
+        else:
+            print(f"[SKIP] Simulated trades disabled. Would buy {qty_to_buy:.6f} {symbol} for ${trade_amount:.2f}")
+            print(f"[INFO] To enable real Universal Transfer trading:")
+            print(f"[INFO] 1. Enable Convert API permissions in Binance")
+            print(f"[INFO] 2. Use external trading platform")
+            print(f"[INFO] 3. Set ALLOW_SIMULATED_TRADES=True for testing")
+            return None
+        
+    except Exception as e:
+        print(f"[UNIVERSAL TRANSFER ERROR] {symbol}: {e}")
+        return None
+
+def determine_trading_pair(from_asset, to_asset):
+    """Determine the correct trading pair and side for cross-asset trading"""
+    if from_asset == 'BTC' and to_asset == 'ETH':
+        return 'BTCETH', 'SELL'  # Sell BTC to get ETH
+    elif from_asset == 'ETH' and to_asset == 'BTC':
+        return 'BTCETH', 'BUY'   # Buy BTC with ETH
+    elif from_asset == 'BTC' and to_asset == 'USDC':
+        return 'BTCUSDC', 'SELL'
+    elif from_asset == 'USDC' and to_asset == 'BTC':
+        return 'BTCUSDC', 'BUY'
+    elif from_asset == 'ETH' and to_asset == 'USDC':
+        return 'ETHUSDC', 'SELL'
+    elif from_asset == 'USDC' and to_asset == 'ETH':
+        return 'ETHUSDC', 'BUY'
+    else:
+        raise ValueError(f"Unsupported trading pair: {from_asset} -> {to_asset}")
+
+def cross_asset_trade(from_asset, to_asset, amount, symbol_for_position=None):
+    """Execute a cross-asset trade between BTC, ETH, and USDC"""
+    try:
+        symbol, side = determine_trading_pair(from_asset, to_asset)
+        
+        print(f"[CROSS-TRADE] Trading {from_asset} -> {to_asset} using {symbol} ({side})")
+        
+        # Check if we have sufficient balance
+        from_balance = balance[from_asset.lower()]
+        if from_balance < amount:
+            print(f"[ERROR] Insufficient {from_asset} balance: {from_balance} < {amount}")
+            return None
+        
+        if side == 'BUY':
+            # Buying to_asset with from_asset
+            if symbol.endswith('USDC'):
+                # Quote currency is USDC
+                order = client.order_market_buy(symbol=symbol, quoteOrderQty=amount)
+            else:
+                # For BTCETH, buying BTC with ETH (quote currency is ETH)
+                order = client.order_market_buy(symbol=symbol, quoteOrderQty=amount)
+        else:
+            # Selling from_asset to get to_asset
+            if symbol.endswith('USDC'):
+                # Base currency being sold
+                order = client.order_market_sell(symbol=symbol, quantity=amount)
+            else:
+                # For BTCETH, selling BTC to get ETH
+                order = client.order_market_sell(symbol=symbol, quantity=amount)
+        
+        # Update balances based on executed trade
+        executed_qty = float(order['executedQty'])
+        avg_price = float(order['cumulativeQuoteQty']) / executed_qty if executed_qty > 0 else 0
+        
+        if side == 'BUY':
+            if symbol.endswith('USDC'):
+                # Bought base asset with USDC
+                balance['usd'] -= amount
+                balance[to_asset.lower()] += executed_qty
+            else:
+                # Bought BTC with ETH
+                balance['eth'] -= amount
+                balance['btc'] += executed_qty
+        else:
+            if symbol.endswith('USDC'):
+                # Sold base asset for USDC
+                balance[from_asset.lower()] -= executed_qty
+                balance['usd'] += float(order['cumulativeQuoteQty'])
+            else:
+                # Sold BTC for ETH
+                balance['btc'] -= executed_qty
+                balance['eth'] += float(order['cumulativeQuoteQty'])
+        
+        print(f"[CROSS-TRADE] ✅ Executed: {executed_qty:.6f} {symbol} at avg price {avg_price:.6f}")
+        print(f"[BALANCE] BTC: {balance['btc']:.6f}, ETH: {balance['eth']:.6f}, USD: {balance['usd']:.2f}")
+        
+        # Create position entry for tracking (if this is a buy operation)
+        if symbol_for_position:
+            positions[symbol_for_position] = {
+                'entry': avg_price,
+                'qty': executed_qty,
+                'timestamp': time.time(),
+                'trade_time': time.time(),
+                'mode': 'CROSS_ASSET',
+                'underlying_symbol': symbol,
+                'asset_held': to_asset if side == 'BUY' else from_asset
+            }
+            print(f"[POSITION] Created position for {symbol_for_position}: {positions[symbol_for_position]}")
+            return positions[symbol_for_position]
+        
+        return True
+        
+    except Exception as e:
+        print(f"[CROSS-TRADE ERROR] {from_asset}->{to_asset}: {e}")
+        return None
+
+def buy(symbol, amount=None):
+    """Smart buy function that supports cross-asset trading between BTC, ETH, and USDC."""
+    print(f"[BUY] Attempting to buy {symbol} with amount: {amount}")
+    print(f"[BALANCE] BTC: {balance['btc']:.6f}, ETH: {balance['eth']:.6f}, USD: {balance['usd']:.2f}")
+    
+    # Determine what asset we're buying and what we're paying with
+    if symbol == 'BTCUSDC':
+        # Buying BTC with USDC
+        if balance['usd'] >= amount:
+            return cross_asset_trade('USDC', 'BTC', amount, symbol_for_position=symbol)
+        else:
+            print(f"[SKIP] Insufficient USDC balance: {balance['usd']:.2f} < {amount}")
+            return None
+    elif symbol == 'ETHUSDC':
+        # Buying ETH with USDC
+        if balance['usd'] >= amount:
+            return cross_asset_trade('USDC', 'ETH', amount, symbol_for_position=symbol)
+        else:
+            print(f"[SKIP] Insufficient USDC balance: {balance['usd']:.2f} < {amount}")
+            return None
+    elif symbol == 'BTCETH':
+        # Decide whether to use BTC or ETH to buy the other
+        # Strategy: Use whichever asset we have more of (in USD value)
+        btc_price = get_latest_price('BTCUSDC')
+        eth_price = get_latest_price('ETHUSDC')
+        btc_value = balance['btc'] * btc_price
+        eth_value = balance['eth'] * eth_price
+        
+        min_trade_value = amount or 10  # Default $10 trade
+        
+        if btc_value >= min_trade_value and eth_value >= min_trade_value:
+            # We have both assets, use the one we have more of
+            if btc_value > eth_value:
+                # Use BTC to buy ETH (sell BTC for ETH)
+                btc_amount = min_trade_value / btc_price
+                return cross_asset_trade('BTC', 'ETH', btc_amount, symbol_for_position=symbol)
+            else:
+                # Use ETH to buy BTC (buy BTC with ETH)
+                eth_amount = min_trade_value / eth_price
+                return cross_asset_trade('ETH', 'BTC', eth_amount, symbol_for_position=symbol)
+        elif btc_value >= min_trade_value:
+            # Only have enough BTC, use it to buy ETH
+            btc_amount = min_trade_value / btc_price
+            return cross_asset_trade('BTC', 'ETH', btc_amount, symbol_for_position=symbol)
+        elif eth_value >= min_trade_value:
+            # Only have enough ETH, use it to buy BTC
+            eth_amount = min_trade_value / eth_price
+            return cross_asset_trade('ETH', 'BTC', eth_amount, symbol_for_position=symbol)
+        else:
+            print(f"[SKIP] Insufficient balance for BTCETH trade. BTC: ${btc_value:.2f}, ETH: ${eth_value:.2f}")
+            return None
+    else:
+        print(f"[ERROR] Unsupported symbol for cross-asset trading: {symbol}")
+        return None
+
+def buy_with_spot_trading(symbol, amount=None):
+    """Original SPOT trading function for when full SPOT permissions are available."""
+    try:
+        precision = quote_precision_for(symbol)
+        trade_amount = round(amount, precision)
+        min_notional = min_notional_for(symbol)
+        print(f"[SPOT] Attempting to buy {symbol}: trade_amount=${trade_amount}, min_notional=${min_notional}")
+        
+        if trade_amount < min_notional:
+            print(f"[SKIP] {symbol}: Trade amount (${trade_amount}) < MIN_NOTIONAL (${min_notional})")
+            return None
+            
+        # Execute SPOT market buy order
         order = client.order_market_buy(symbol=symbol, quoteOrderQty=trade_amount)
         price = float(order['fills'][0]['price'])
         qty = float(order['executedQty'])
         qty = round_qty(symbol, qty)
-        print(f"[INFO] Bought {symbol}: qty={qty}, price={price}")
+        print(f"[SPOT] ✅ Bought {symbol}: qty={qty}, price={price}")
+        
         balance['usd'] -= trade_amount
+        print(f"[DEBUG] USDC balance after SPOT buy: {balance['usd']:.8f} (spent {trade_amount} USDC)")
         positions[symbol] = {
             'entry': price,
             'qty': qty,
             'timestamp': time.time(),
-            'trade_time': time.time()
+            'trade_time': time.time(),
+            'mode': 'SPOT'
         }
-        print(f"[DEBUG] Actual USDC balance after buy attempt: {balance['usd']}")
+        print(f"[DEBUG] USDC balance after buy: ${balance['usd']}")
         
         # Send investment alert
         try:
             send_alarm_message_safe(
-                f"💰 INVESTMENT MADE\n\n"
+                f"💰 INVESTMENT MADE (SPOT)\n\n"
                 f"📊 {symbol}\n"
                 f"💵 Amount: ${trade_amount:.2f}\n"
                 f"📈 Price: ${price:.6f}\n"
@@ -1698,11 +2357,83 @@ def buy(symbol, amount=None):
             print(f"[ALERT ERROR] Could not send investment alert: {e}")
         
         return positions[symbol]
+        
     except BinanceAPIException as e:
-        print(f"[BUY ERROR] {symbol}: {e}")
-        return None
+        print(f"[SPOT ERROR] {symbol}: {e}")
+        if "Invalid API-key" in str(e) or "permission" in str(e).lower():
+            print(f"[FALLBACK] SPOT permissions lost, trying Universal Transfer...")
+            return buy_with_universal_transfer(symbol, amount)
+        else:
+            print(f"[SPOT ERROR] Buy failed, refreshing USDC balance and skipping.")
+            fetch_usdc_balance()
+            return None
 
 def sell(symbol, qty):
+    """Smart sell function that supports cross-asset trading between BTC, ETH, and USDC."""
+    print(f"[SELL] Attempting to sell {symbol}, qty: {qty}")
+    
+    # For cross-asset trading, we need to decide what to sell and what to receive
+    if symbol == 'BTCUSDC':
+        # Selling BTC for USDC
+        if balance['btc'] >= qty:
+            success = cross_asset_trade('BTC', 'USDC', qty)
+            if success:
+                # For selling, we need to return (price, fee, tax) for compatibility
+                current_price = get_latest_price(symbol)
+                return current_price, 0, 0
+            else:
+                return None, 0, 0
+        else:
+            print(f"[SKIP] Insufficient BTC balance: {balance['btc']:.6f} < {qty}")
+            return None, 0, 0
+    elif symbol == 'ETHUSDC':
+        # Selling ETH for USDC
+        if balance['eth'] >= qty:
+            success = cross_asset_trade('ETH', 'USDC', qty)
+            if success:
+                current_price = get_latest_price(symbol)
+                return current_price, 0, 0
+            else:
+                return None, 0, 0
+        else:
+            print(f"[SKIP] Insufficient ETH balance: {balance['eth']:.6f} < {qty}")
+            return None, 0, 0
+    elif symbol == 'BTCETH':
+        # For BTCETH positions, we need to determine if we're holding BTC or ETH
+        # Check which asset we actually have in our position
+        pos = positions.get(symbol, {})
+        if not pos:
+            print(f"[ERROR] No position found for {symbol}")
+            return None, 0, 0
+        
+        # Check what asset we actually hold for this position
+        asset_held = pos.get('asset_held', 'BTC')  # Default to BTC if not specified
+        
+        if asset_held == 'BTC' and balance['btc'] >= qty:
+            # We hold BTC, sell it for USDC
+            success = cross_asset_trade('BTC', 'USDC', qty)
+            if success:
+                current_price = get_latest_price('BTCUSDC')
+                return current_price, 0, 0
+            else:
+                return None, 0, 0
+        elif asset_held == 'ETH' and balance['eth'] >= qty:
+            # We hold ETH, sell it for USDC
+            success = cross_asset_trade('ETH', 'USDC', qty)
+            if success:
+                current_price = get_latest_price('ETHUSDC')
+                return current_price, 0, 0
+            else:
+                return None, 0, 0
+        else:
+            print(f"[SKIP] Insufficient {asset_held} balance for {symbol}. BTC: {balance['btc']:.6f}, ETH: {balance['eth']:.6f}")
+            return None, 0, 0
+    else:
+        print(f"[ERROR] Unsupported symbol for cross-asset selling: {symbol}")
+        return None, 0, 0
+
+def sell_with_spot_trading(symbol, qty):
+    """Original SPOT trading sell function"""
     try:
         sell_qty = round_qty(symbol, qty)
         current_price = get_latest_price(symbol)
@@ -1721,6 +2452,91 @@ def sell(symbol, qty):
     except BinanceAPIException as e:
         print(f"[SELL ERROR] {symbol}: {e}")
         # Do not remove from positions here.
+        return None, 0, 0
+
+def sell_with_universal_transfer(symbol, qty):
+    """Sell function using Universal Transfer permissions or Convert API"""
+    try:
+        sell_qty = round_qty(symbol, qty)
+        current_price = get_latest_price(symbol)
+        value = current_price * sell_qty
+        
+        if sell_qty == 0 or qty == 0:
+            return None, 0, 0
+        if value < DUST_LIMIT:
+            print(f"[SKIP] {symbol}: Value after rounding is ${value:.2f} (below DUST_LIMIT ${DUST_LIMIT}), skipping sell.")
+            return None, 0, 0
+        
+        base_asset = symbol.replace('USDC', '')
+        
+        # Method 1: Try using Binance Convert API (if available)
+        try:
+            from convert_api import convert_crypto_to_usdc, test_convert_api_access
+            
+            # Check if Convert API is available
+            if test_convert_api_access():
+                print(f"[CONVERT] Attempting real sell conversion via Convert API...")
+                
+                convert_result = convert_crypto_to_usdc(symbol, sell_qty)
+                if convert_result and convert_result.get('success'):
+                    print(f"[CONVERT] ✅ Real sell conversion successful!")
+                    print(f"[CONVERT] Order ID: {convert_result.get('orderId')}")
+                    print(f"[CONVERT] Converted: {convert_result.get('fromAmount')} {base_asset} -> {convert_result.get('toAmount')} USDC")
+                    
+                    # Update balance
+                    balance['usd'] += convert_result.get('toAmount', 0)
+                    print(f"[DEBUG] USDC balance after real sell: {balance['usd']:.8f} (received {convert_result.get('toAmount', 0)} USDC)")
+                    
+                    # Send alert about real trade
+                    try:
+                        send_alarm_message_safe(
+                            f"✅ REAL SELL CONVERSION EXECUTED\n\n"
+                            f"📊 {symbol}\n"
+                            f"🔢 Sold: {convert_result.get('fromAmount'):.6f} {base_asset}\n"
+                            f"💵 Received: ${convert_result.get('toAmount'):.2f} USDC\n"
+                            f"📈 Rate: {convert_result.get('rate', 'N/A')}\n"
+                            f"💼 New USDC Balance: ${balance['usd']:.2f}\n"
+                            f"🆔 Order ID: {convert_result.get('orderId')}\n"
+                            f"✅ Mode: Convert API (Real Trading)"
+                        )
+                    except Exception as e:
+                        print(f"[ALERT ERROR] Could not send real sell alert: {e}")
+                    
+                    price = convert_result.get('rate', current_price)
+                    fee = 0  # Convert API fees are included in the rate
+                    return price, fee, 0
+                    
+                else:
+                    print("[CONVERT] Convert API sell failed, falling back to simulation")
+            else:
+                print("[CONVERT] Convert API not available for sell, falling back to simulation")
+                
+        except ImportError:
+            print("[CONVERT] Convert API module not available for sell, falling back to simulation")
+        except Exception as convert_error:
+            print(f"[CONVERT] Convert API sell error: {convert_error}, falling back to simulation")
+        
+        # Method 2: Simulate sell
+        print(f"[SIMULATE] Executing simulated sell:")
+        print(f"[SIMULATE] - Symbol: {symbol}")
+        print(f"[SIMULATE] - Quantity: {sell_qty:.6f} {base_asset}")
+        print(f"[SIMULATE] - Price: ${current_price:.6f}")
+        print(f"[SIMULATE] - Value: ${value:.2f} USDC")
+        
+        # Apply realistic slippage for simulation
+        slippage = 0.001  # 0.1% slippage
+        effective_price = current_price * (1 - slippage)
+        effective_value = effective_price * sell_qty
+        
+        # Update simulated balance
+        balance['usd'] += effective_value
+        print(f"[DEBUG] USDC balance after simulated sell: {balance['usd']:.8f} (received {effective_value:.2f} USDC)")
+        
+        print(f"[SIMULATE] ✅ Simulated sell executed for {symbol}")
+        return effective_price, 0, 0
+        
+    except Exception as e:
+        print(f"[SELL ERROR] {symbol}: {e}")
         return None, 0, 0
 
 def estimate_trade_tax(entry_price, exit_price, qty, trade_time, exit_time):
@@ -2225,7 +3041,7 @@ def check_ma_cross(symbol, interval='1m', short_period=MA_PERIODS_SHORT, long_pe
         print(f"[MA CROSS ERROR] {symbol}: {e}")
         return False
 
-def check_advanced_momentum(symbol, interval='1m', min_change=0.005):
+def check_advanced_momentum(symbol, interval='1m', min_change=0.003):  # Lower default from 0.005 to 0.003
     """Optimized momentum check using cached price data when available."""
     try:
         # Try to get cached price data first for better performance
@@ -2260,7 +3076,7 @@ def check_advanced_momentum(symbol, interval='1m', min_change=0.005):
             }
             
             has_momentum = price_momentum and volume_spike
-            return has_momentum, indicators
+            return bool(has_momentum), indicators
         
         # Fallback to full API-based calculation
         klines = client.get_klines(symbol=symbol, interval=interval, limit=30)
@@ -2299,10 +3115,12 @@ def check_advanced_momentum(symbol, interval='1m', min_change=0.005):
         # Require price momentum + at least one other indicator
         has_momentum = price_momentum and (volume_spike or rsi_momentum or ma_cross)
         
-        return has_momentum, indicators
+        # Ensure we always return a boolean value, never None
+        return bool(has_momentum), indicators
         
     except Exception as e:
         print(f"[ADVANCED MOMENTUM ERROR] {symbol} {interval}: {e}")
+        # Always return False (boolean) and empty dict, never None
         return False, {}
 
 # --- Dynamic momentum thresholds based on realized volatility (ATR%) ---
@@ -2369,13 +3187,26 @@ def dynamic_momentum_threshold(symbol, interval='1m', lookback=60,
 
 def dynamic_momentum_set(symbol):
     """
-    Produce per-interval dynamic thresholds tuned for faster micro-scalping.
-    We make shorter TFs more sensitive (lower k), longer TFs slightly stricter.
+    Produce per-interval dynamic thresholds tuned for even faster micro-scalping.
+    Making all timeframes more sensitive with lower multipliers and floors.
     """
-    thr_1m  = dynamic_momentum_threshold(symbol, '1m',  lookback=60,  k=0.35, floor_=0.0005, cap_=0.012)  # More sensitive
-    thr_5m  = dynamic_momentum_threshold(symbol, '5m',  lookback=48,  k=0.50, floor_=0.0008, cap_=0.015)  # More sensitive
-    thr_15m = dynamic_momentum_threshold(symbol, '15m', lookback=48,  k=0.65, floor_=0.0012, cap_=0.018)  # More sensitive
-    return thr_1m, thr_5m, thr_15m
+    try:
+        thr_1m  = dynamic_momentum_threshold(symbol, '1m',  lookback=60,  k=0.25, floor_=0.0003, cap_=0.010)  # Much more sensitive
+        thr_5m  = dynamic_momentum_threshold(symbol, '5m',  lookback=48,  k=0.35, floor_=0.0005, cap_=0.012)  # Much more sensitive  
+        thr_15m = dynamic_momentum_threshold(symbol, '15m', lookback=48,  k=0.45, floor_=0.0008, cap_=0.015)  # Much more sensitive
+        
+        # Ensure no None values are returned
+        if thr_1m is None:
+            thr_1m = 0.0003
+        if thr_5m is None:
+            thr_5m = 0.0005
+        if thr_15m is None:
+            thr_15m = 0.0008
+            
+        return thr_1m, thr_5m, thr_15m
+    except Exception as e:
+        print(f"[DYNAMIC MOMENTUM SET ERROR] {symbol}: {e}")
+        return 0.0003, 0.0005, 0.0008  # Safe fallback values
 
 
 def has_recent_momentum(symbol, min_1m=None, min_5m=None, min_15m=None):
@@ -2425,9 +3256,9 @@ def has_recent_momentum(symbol, min_1m=None, min_5m=None, min_15m=None):
         
         print(f"[MOMENTUM SCORE] {symbol}: 1m={score_1m}/3, 5m={score_5m}/3, 15m={score_15m}/3, Total={total_score}/9")
         
-        # FAST MODE: Require at least 6/9 points with 1m showing strong signal
-        # This allows investment when momentum is building, not just when perfect
-        fast_entry = (total_score >= 6 and score_1m >= 2)
+        # LESS STRICT MODE: Require at least 5/9 points and 1m score >= 1
+        # This allows investment with moderate momentum
+        fast_entry = (total_score >= 5 and score_1m >= 1)
         
         # CONSERVATIVE MODE: Original requirement (all timeframes perfect)
         conservative_entry = momentum_1m and momentum_5m and momentum_15m
@@ -2940,12 +3771,18 @@ async def check_and_alarm_high_volume_optimized(context=None):
                         m1, ind1 = check_advanced_momentum(symbol, '1m',  d1)
                         m5, ind5 = check_advanced_momentum(symbol, '5m',  d5)
                         m15,ind15= check_advanced_momentum(symbol, '15m', d15)
+                        
+                        # Ensure all momentum values are boolean (never None)
+                        m1 = bool(m1) if m1 is not None else False
+                        m5 = bool(m5) if m5 is not None else False
+                        m15 = bool(m15) if m15 is not None else False
+                        
                     except Exception as e:
                         print(f"[MOMENTUM CHECK ERROR] {symbol}: {e}")
                         processed_count += 1
                         continue
 
-                    # Count momentum stages met
+                    # Count momentum stages met (safe sum with boolean values)
                     momentum_count = sum([m1, m5, m15])
                     
                     # Full momentum alert (all 3 stages)
@@ -3004,7 +3841,12 @@ async def check_and_alarm_high_volume(context=None):
             m5, ind5 = check_advanced_momentum(symbol, '5m',  d5)
             m15,ind15= check_advanced_momentum(symbol, '15m', d15)
 
-            # Count momentum stages met
+            # Ensure all momentum values are boolean (never None)
+            m1 = bool(m1) if m1 is not None else False
+            m5 = bool(m5) if m5 is not None else False
+            m15 = bool(m15) if m15 is not None else False
+
+            # Count momentum stages met (safe sum with boolean values)
             momentum_count = sum([m1, m5, m15])
             
             # Full momentum alert (all 3 stages)
@@ -3050,17 +3892,22 @@ async def check_and_alarm_high_volume(context=None):
 # --- Telegram alarm job setup ---
 async def alarm_job(context: CallbackContext):
     """
-    Ultra-fast alarm job that uses aggressive optimizations to prevent scheduler delays.
+    Ultra-fast alarm job that detects momentum and executes investments.
     """
     start_time = time.time()
     
     try:
-        # Run in a separate thread with strict timeout
+        # Check if bot is paused
+        if is_paused():
+            print("[ALARM JOB] Bot is paused, skipping momentum check")
+            return
+        
+        # Run momentum detection and investment in a separate thread with strict timeout
         import concurrent.futures
         import threading
         
-        def quick_momentum_check():
-            """Fast momentum check with aggressive timeouts."""
+        def quick_momentum_check_and_invest():
+            """Fast momentum check with immediate investment execution."""
             try:
                 stats = load_symbol_stats()
                 if not stats:
@@ -3079,6 +3926,7 @@ async def alarm_job(context: CallbackContext):
                 top_symbols = symbol_items[:10]
                 
                 alerts_to_send = []
+                investment_candidates = []  # Track symbols ready for investment
                 
                 for symbol, s in top_symbols:
                     if time.time() - start > max_process_time:
@@ -3103,6 +3951,12 @@ async def alarm_job(context: CallbackContext):
                             
                             # Simplified momentum check with single API call
                             try:
+                                d1, d5, d15 = dynamic_momentum_set(symbol)
+                                
+                                # Ensure d1, d5, d15 are not None
+                                if d1 is None or d5 is None or d15 is None:
+                                    continue
+                                    
                                 klines_1m = client.get_klines(symbol=symbol, interval='1m', limit=2)
                                 if len(klines_1m) >= 2:
                                     prev_close = float(klines_1m[-2][4])
@@ -3116,14 +3970,51 @@ async def alarm_job(context: CallbackContext):
                                             m5, ind5 = check_advanced_momentum(symbol, '5m', d5)
                                             m15, ind15 = check_advanced_momentum(symbol, '15m', d15)
                                             
+                                            # Ensure m5 and m15 are boolean values (never None)
+                                            m5 = bool(m5) if m5 is not None else False
+                                            m15 = bool(m15) if m15 is not None else False
+                                            
                                             momentum_count = 1 + sum([m5, m15])  # 1m already passed
                                             
-                                            if momentum_count == 3:
+                                            if momentum_count >= 2:  # Less strict: 2/3 or more
                                                 pct5 = ind5.get('pct_change', 0) if ind5 else 0
                                                 pct15 = ind15.get('pct_change', 0) if ind15 else 0
                                                 alerts_to_send.append(('full', symbol, vol, pct_1m*100, pct5, pct15, d1, d5, d15))
                                                 full_momentum_count += 1
-                                            elif momentum_count >= 2:
+                                                
+                                                # EXECUTE INVESTMENT IMMEDIATELY
+                                                try:
+                                                    fetch_usdc_balance()  # Update balance
+                                                    current_balance = balance.get('usd', 0)  # Get from global balance
+                                                    
+                                                    # Debug: Show live balance before investment attempt
+                                                    print(f"[DEBUG] Live USDC balance before {symbol} investment: {current_balance:.8f}")
+                                                    
+                                                    # Ensure current_balance is a valid number
+                                                    if current_balance is None:
+                                                        current_balance = 0
+                                                        
+                                                    if current_balance >= 25:  # Minimum balance check
+                                                        amount_to_spend = min(50, current_balance * 0.1)  # Max 50 USDC or 10% balance
+                                                        
+                                                        print(f"[DEBUG] Planning to invest {amount_to_spend:.2f} USDC in {symbol}")
+                                                        
+                                                        # Execute the buy order
+                                                        result = buy(symbol, amount_to_spend)
+                                                        if result:
+                                                            investment_candidates.append(symbol)
+                                                            
+                                                            # Debug: Show balance after investment
+                                                            updated_balance = balance.get('usd', 0)
+                                                            print(f"🎯 INVESTED {amount_to_spend:.2f} USDC in {symbol}")
+                                                            print(f"[DEBUG] Updated USDC balance after {symbol} investment: {updated_balance:.8f}")
+                                                        else:
+                                                            print(f"❌ Investment order failed for {symbol}")
+                                                    else:
+                                                        print(f"⚠️  Insufficient balance for {symbol}: {current_balance:.2f} USDC")
+                                                except Exception as invest_error:
+                                                    print(f"❌ Investment error for {symbol}: {invest_error}")
+                                            elif momentum_count >= 1:  # Partial momentum
                                                 partial_momentum_count += 1
                                                 
                                         except Exception:
@@ -3146,8 +4037,12 @@ async def alarm_job(context: CallbackContext):
                         for alert in alerts_to_send:
                             if alert[0] == 'full':
                                 _, symbol, vol, pct1, pct5, pct15, d1, d5, d15 = alert
+                                
+                                # Check if we invested in this symbol
+                                invested_emoji = "💰 INVESTED!" if symbol in investment_candidates else "📊 DETECTED"
+                                
                                 msg = (
-                                    f"🚀 FULL MOMENTUM ALERT - ALL 3 STAGES MET! 🚀\n\n"
+                                    f"🚀 MOMENTUM ALERT - {invested_emoji} 🚀\n\n"
                                     f"🎯 {symbol}: Volume = {vol:,.0f}\n"
                                     f"  1m: ✅ {pct1:.2f}%  (Target {d1*100:.2f}%)\n"
                                     f"  5m: ✅ {pct5:.2f}%  (Target {d5*100:.2f}%)\n"
@@ -3159,14 +4054,14 @@ async def alarm_job(context: CallbackContext):
                     asyncio.run(send_quick_alerts())
                 
                 processing_time = time.time() - start
-                print(f"[QUICK CHECK] Completed in {processing_time:.2f}s: {processed} symbols, {full_momentum_count} full alerts, {partial_momentum_count} partial")
+                print(f"[ALARM JOB] Completed in {processing_time:.2f}s: {processed} symbols, {full_momentum_count} momentum alerts, invested in {len(investment_candidates)} symbols")
                 
             except Exception as e:
-                print(f"[QUICK CHECK ERROR] {e}")
+                print(f"[ALARM JOB] Error: {e}")
         
         # Execute with very strict timeout
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(quick_momentum_check)
+            future = executor.submit(quick_momentum_check_and_invest)
             try:
                 future.result(timeout=15)  # Max 15 seconds
             except concurrent.futures.TimeoutError:

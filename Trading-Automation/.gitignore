@@ -6,3 +6,4 @@ bot_state.json
 symbols.yaml
 trades_detailed.csv
 __pycache__
+fix_lines*
