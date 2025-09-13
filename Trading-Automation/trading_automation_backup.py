@@ -1529,7 +1529,7 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
     sync_positions_with_binance(client, positions)
 
     # Support both button text and commands
-    if text in ["💰 Portfolio", "/balance", "/bal"]:
+    if text in ["� Portfolio", "�📊 Balance", "/balance", "/bal"]:
         fetch_all_balances()  # ✅ Use cross-asset balance fetching
 
         btc = balance['btc']
@@ -1580,8 +1580,10 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
 
 
     
-    # Positions handler removed - use Portfolio instead
-
+    elif text in ["💼 Positions", "💼 Investments", "/investments", "/inv", "/positions"]:
+        msg = format_investments_message(positions, get_latest_price, DUST_LIMIT)
+        await send_with_keyboard(update, msg)
+    
     elif text in ["⏸ Pause Trading", "/pause"]:
         set_paused(True)
         await send_with_keyboard(update, "⏸ Trading is now *paused*. Bot will not auto-invest or auto-sell until resumed.", parse_mode='Markdown')
@@ -1623,6 +1625,7 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         
         # Capture diagnostic output
         import io
+        import sys
         
         old_stdout = sys.stdout
         sys.stdout = captured_output = io.StringIO()
@@ -1736,8 +1739,8 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         except Exception as e:
             await send_with_keyboard(update, f"❌ Quick momentum check failed: {str(e)}")
     
-    elif text in ["📈 Overview", "📈 Status", "/status", "/trading", "/overview"]:
-        await send_with_keyboard(update, "📈 Getting complete cross-asset overview...")
+    elif text in ["� Overview", "📈 Status", "�📊 Trading Status", "/status", "/trading", "/overview"]:
+        await send_with_keyboard(update, "� Getting complete cross-asset overview...")
         
         fetch_all_balances()  # Get all asset balances
         btc = balance['btc']
@@ -2054,7 +2057,7 @@ def is_paused():
     return state.get("paused", False)
 
 main_keyboard = [
-    ["💰 Portfolio"],                           # Financial info
+    ["� Portfolio", "💼 Positions"],           # Clear financial info
     ["⏸ Pause Trading", "▶️ Resume Trading"],   # Trading control  
     ["📝 Trade Log", "🔍 Diagnostics"],        # History & enhanced diagnostics
     ["🔄 Connection", "⚡ Quick Check"],        # WebSocket + fast momentum
