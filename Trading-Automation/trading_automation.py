@@ -340,9 +340,9 @@ class WebSocketPriceManager:
             return
         try:
             if symbol not in self.symbols_to_monitor:
-                # Validate symbol format
-                if not symbol or not isinstance(symbol, str) or not symbol.endswith('USDC'):
-                    print(f"[WEBSOCKET] ❌ Invalid symbol format: {symbol}")
+                # Validate symbol format - support ALLOWED_SYMBOLS including BTCETH
+                if not symbol or not isinstance(symbol, str) or symbol not in ALLOWED_SYMBOLS:
+                    print(f"[WEBSOCKET] ❌ Symbol not in ALLOWED_SYMBOLS: {symbol}")
                     return
                 # Add to monitoring list
                 self.symbols_to_monitor.add(symbol)
@@ -834,12 +834,12 @@ def update_websocket_symbols():
             except Exception as e:
                 print(f"[WEBSOCKET UPDATE] YAML error: {e}")
         
-        # Filter to valid symbols and limit total count
+        # Filter to valid symbols (ALLOWED_SYMBOLS) and limit total count
         valid_symbols = [s for s in symbols_to_monitor 
-                        if s and isinstance(s, str) and s.endswith('USDC')]
+                        if s and isinstance(s, str) and s in ALLOWED_SYMBOLS]
         
-        # Limit to maximum 5 symbols for deployment performance
-        valid_symbols = valid_symbols[:5]
+        # Limit to maximum 3 symbols for deployment performance (BTCUSDC, ETHUSDC, BTCETH)
+        valid_symbols = valid_symbols[:3]
         
         if valid_symbols:
             print(f"[WEBSOCKET UPDATE] Updating to monitor {len(valid_symbols)} symbols: {valid_symbols}")
@@ -1458,13 +1458,22 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
     sync_positions_with_binance(client, positions)
 
     # Support both button text and commands
-    if text in ["📊 Balance", "/balance", "/bal"]:
-        fetch_usdc_balance()
+    if text in ["� Portfolio", "�📊 Balance", "/balance", "/bal"]:
+        fetch_all_balances()  # ✅ Use cross-asset balance fetching
 
+        btc = balance['btc']
+        eth = balance['eth'] 
         usdc = balance['usd']
         total_invested = 0.0
         invested_details = []
 
+        # Calculate USD values for BTC and ETH
+        btc_price = get_latest_price('BTCUSDC') or 0
+        eth_price = get_latest_price('ETHUSDC') or 0
+        btc_value = btc * btc_price
+        eth_value = eth * eth_price
+
+        # Calculate total invested in positions
         for s, p in positions.items():
             price = get_latest_price(s)
             if price is None:
@@ -1476,22 +1485,31 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
                 total_invested += value
                 invested_details.append(f"{s}: {qty:.6f} @ ${price:.2f} = ${value:.2f}")
 
+        # Cross-asset portfolio message
         msg = (
-            f"USDC Balance: **${usdc:.2f}**\n"
-            f"Total Invested: **${total_invested:.2f}**\n"
-            f"Portfolio Value: **${usdc + total_invested:.2f} USDC**"
+            f"**💰 Cross-Asset Portfolio Balance:**\n\n"
+            f"**Available Assets:**\n"
+            f"• BTC: **{btc:.6f}** (~${btc_value:.2f})\n"
+            f"• ETH: **{eth:.6f}** (~${eth_value:.2f})\n" 
+            f"• USDC: **${usdc:.2f}**\n\n"
+            f"**Portfolio Summary:**\n"
+            f"• Available: **${btc_value + eth_value + usdc:.2f}**\n"
+            f"• Invested: **${total_invested:.2f}**\n"
+            f"• **Total Portfolio Value: ${btc_value + eth_value + usdc + total_invested:.2f}**"
         )
 
         if invested_details:
-            msg += "\n\n*Investments:*"
-            for line in invested_details:
-                msg += f"\n- {line}"
+            msg += "\n\n*Active Investments:*"
+            for line in invested_details[:5]:  # Limit to first 5 to avoid message length
+                msg += f"\n• {line}"
+            if len(invested_details) > 5:
+                msg += f"\n• ... and {len(invested_details) - 5} more positions"
 
         await send_with_keyboard(update, msg, parse_mode='Markdown')
 
 
     
-    elif text in ["💼 Investments", "/investments", "/inv", "/positions"]:
+    elif text in ["💼 Positions", "💼 Investments", "/investments", "/inv", "/positions"]:
         msg = format_investments_message(positions, get_latest_price, DUST_LIMIT)
         await send_with_keyboard(update, msg)
     
@@ -1531,8 +1549,8 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
                     continue
             await send_with_keyboard(update, f"```{msg}```", parse_mode='Markdown')
     
-    elif text in ["🔍 Diagnose", "/diagnose", "/diag"]:
-        await send_with_keyboard(update, "🔍 Running investment diagnostic for ETHUSDC...")
+    elif text in ["🔍 Diagnostics", "🔍 Diagnose", "/diagnose", "/diag"]:
+        await send_with_keyboard(update, "🔍 Running cross-asset investment diagnostic...")
         
         # Capture diagnostic output
         import io
@@ -1542,21 +1560,34 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         sys.stdout = captured_output = io.StringIO()
         
         try:
-            diagnose_investment_failure("ETHUSDC")
+            # Run diagnostic for all allowed symbols instead of just ETHUSDC
+            for i, symbol in enumerate(ALLOWED_SYMBOLS):
+                if i > 0:
+                    print("\n" + "="*50 + "\n")  # Separator between symbols
+                diagnose_investment_failure(symbol)
             diagnostic_text = captured_output.getvalue()
         finally:
             sys.stdout = old_stdout
         
-        # Split into chunks if too long for Telegram
-        max_length = 4000
+        # Enhanced diagnostic summary
+        summary_msg = f"🔍 **Cross-Asset Diagnostic Summary**\n\n"
+        summary_msg += f"**Checked Symbols:** {', '.join(ALLOWED_SYMBOLS)}\n"
+        summary_msg += f"**Bot Status:** {'⏸️ PAUSED' if is_paused() else '▶️ ACTIVE'}\n"
+        summary_msg += f"**Market Risk:** {'🔴 HIGH' if 'market_is_risky' in globals() and market_is_risky() else '🟢 NORMAL'}\n"
+        summary_msg += f"**Positions:** {len([p for s, p in positions.items() if get_latest_price(s) and p.get('qty', 0) * get_latest_price(s) > DUST_LIMIT])}/{MAX_POSITIONS}\n\n"
+        
+        await send_with_keyboard(update, summary_msg, parse_mode='Markdown')
+        
+        # Split detailed diagnostic into chunks if too long for Telegram
+        max_length = 3500  # Shorter chunks to ensure delivery
         if len(diagnostic_text) > max_length:
             chunks = [diagnostic_text[i:i+max_length] for i in range(0, len(diagnostic_text), max_length)]
             for i, chunk in enumerate(chunks):
-                await send_with_keyboard(update, f"```\nDiagnostic Report ({i+1}/{len(chunks)}):\n{chunk}\n```", parse_mode='Markdown')
+                await send_with_keyboard(update, f"```\nDetailed Report ({i+1}/{len(chunks)}):\n{chunk}\n```", parse_mode='Markdown')
         else:
-            await send_with_keyboard(update, f"```\nDiagnostic Report:\n{diagnostic_text}\n```", parse_mode='Markdown')
+            await send_with_keyboard(update, f"```\nDetailed Diagnostic Report:\n{diagnostic_text}\n```", parse_mode='Markdown')
     
-    elif text in ["🔄 WebSocket Status", "/websocket", "/ws"]:
+    elif text in ["🔄 Connection", "🔄 WebSocket Status", "/websocket", "/ws", "/connection"]:
         status = get_realtime_price_summary()
         msg = (
             f"🔄 **WebSocket Price Monitoring Status**\n\n"
@@ -1582,45 +1613,109 @@ async def telegram_handle_message(update: Update, context: ContextTypes.DEFAULT_
         
         await send_with_keyboard(update, msg, parse_mode='Markdown')
     
-    elif text in ["⚡ Check Momentum", "/momentum", "/check"]:
-        await send_with_keyboard(update, "⚡ Running manual momentum check...")
+    elif text in ["⚡ Quick Check", "⚡ Check Momentum", "/momentum", "/check", "/quick"]:
+        await send_with_keyboard(update, "⚡ Quick momentum check for top symbols...")
         
         try:
-            # Run the quick momentum check manually
             start_time = time.time()
-            await alarm_job(context)
-            end_time = time.time()
             
+            # Quick check of only ALLOWED_SYMBOLS for performance
+            results = []
+            
+            for symbol in ALLOWED_SYMBOLS:
+                try:
+                    # Get current price
+                    current_price = get_latest_price(symbol)
+                    if not current_price:
+                        results.append(f"• {symbol}: ❌ No price data")
+                        continue
+                    
+                    # Quick momentum check using has_recent_momentum if available
+                    try:
+                        has_momentum = has_recent_momentum(symbol) if 'has_recent_momentum' in globals() else False
+                        momentum_status = "✅ Strong" if has_momentum else "⚪ Weak"
+                    except:
+                        # Fallback: simple 1m price change check
+                        try:
+                            klines = client.get_klines(symbol=symbol, interval='1m', limit=2)
+                            if len(klines) >= 2:
+                                prev_close = float(klines[-2][4])
+                                current_close = float(klines[-1][4])
+                                pct_change = ((current_close - prev_close) / prev_close) * 100
+                                momentum_status = "✅ Rising" if pct_change > 0.3 else "⚪ Stable" if pct_change > -0.3 else "🔴 Falling"
+                            else:
+                                momentum_status = "❓ No data"
+                        except:
+                            momentum_status = "❌ Error"
+                    
+                    results.append(f"• {symbol}: {momentum_status} @ ${current_price:.4f}")
+                    
+                except Exception as e:
+                    results.append(f"• {symbol}: ❌ Error - {str(e)[:30]}")
+            
+            end_time = time.time()
             processing_time = end_time - start_time
-            await send_with_keyboard(update, 
-                f"✅ Manual momentum check completed in {processing_time:.2f} seconds")
+            
+            msg = (
+                f"⚡ **Quick Momentum Check Results:**\n"
+                f"⏱️ Completed in {processing_time:.2f}s\n\n"
+                + "\n".join(results) +
+                f"\n\n💡 *This is a fast check of allowed symbols only.*"
+            )
+            
+            await send_with_keyboard(update, msg, parse_mode='Markdown')
+            
         except Exception as e:
-            await send_with_keyboard(update, f"❌ Momentum check failed: {str(e)}")
+            await send_with_keyboard(update, f"❌ Quick momentum check failed: {str(e)}")
     
-    elif text in ["📊 Trading Status", "/status", "/trading"]:
-        await send_with_keyboard(update, "📊 Getting trading status...")
+    elif text in ["� Overview", "📈 Status", "�📊 Trading Status", "/status", "/trading", "/overview"]:
+        await send_with_keyboard(update, "� Getting complete cross-asset overview...")
         
-        # Capture debug output
-        import io
-        import sys
+        fetch_all_balances()  # Get all asset balances
+        btc = balance['btc']
+        eth = balance['eth']
+        usdc = balance['usd']
         
-        old_stdout = sys.stdout
-        sys.stdout = captured_output = io.StringIO()
+        # Calculate USD values
+        btc_price = get_latest_price('BTCUSDC') or 0
+        eth_price = get_latest_price('ETHUSDC') or 0
+        btc_value = btc * btc_price
+        eth_value = eth * eth_price
+        available_value = btc_value + eth_value + usdc
         
-        try:
-            get_trading_status()
-            debug_text = captured_output.getvalue()
-        finally:
-            sys.stdout = old_stdout
+        # Calculate total invested
+        total_invested = sum(get_latest_price(s) * p.get('qty', 0) 
+                           for s, p in positions.items() 
+                           if get_latest_price(s) and p.get('qty', 0) * get_latest_price(s) > DUST_LIMIT)
         
-        # Send debug info
-        if len(debug_text) > 4000:
-            # Split long messages
-            chunks = [debug_text[i:i+4000] for i in range(0, len(debug_text), 4000)]
-            for i, chunk in enumerate(chunks):
-                await send_with_keyboard(update, f"```\nTrading Status ({i+1}/{len(chunks)}):\n{chunk}\n```", parse_mode='Markdown')
-        else:
-            await send_with_keyboard(update, f"```\nTrading Status:\n{debug_text}\n```", parse_mode='Markdown')
+        # Get trading mode
+        trading_mode = get_effective_trading_mode()
+        
+        status_msg = f"""**📈 Cross-Asset Trading Bot Overview**
+
+**💰 Available Assets:**
+• BTC: {btc:.6f} (~${btc_value:.2f})
+• ETH: {eth:.6f} (~${eth_value:.2f}) 
+• USDC: ${usdc:.2f}
+• **Available Total: ${available_value:.2f}**
+
+**💼 Investment Status:**
+• Total Invested: ${total_invested:.2f}
+• **Portfolio Value: ${available_value + total_invested:.2f}**
+• Active Positions: {len([p for s, p in positions.items() if get_latest_price(s) and p.get('qty', 0) * get_latest_price(s) > DUST_LIMIT])}/{MAX_POSITIONS}
+
+**⚙️ Trading Status:**
+• Bot State: {'⏸️ PAUSED' if is_paused() else '▶️ ACTIVE'}
+• Trading Mode: {trading_mode}
+• Market Risk: {'🔴 HIGH' if 'market_is_risky' in globals() and market_is_risky() else '🟢 NORMAL'}
+• Cross-Asset Symbols: {', '.join(ALLOWED_SYMBOLS)}
+
+**🔄 Connection Status:**
+• WebSocket: {'🟢 Active' if ws_price_manager and ws_price_manager._running else '🔴 Inactive'}
+• Monitored: {len(ws_price_manager.get_monitored_symbols()) if ws_price_manager else 0} symbols
+
+Type `/help` for all available commands."""
+        await send_with_keyboard(update, status_msg, parse_mode='Markdown')
     
     elif text in ["⚡ Fast Check", "/fast", "/quick"]:
         await send_with_keyboard(update, "⚡ Running fast momentum check for immediate opportunities...")
@@ -1891,12 +1986,11 @@ def is_paused():
     return state.get("paused", False)
 
 main_keyboard = [
-    ["📊 Balance", "💼 Investments"],
-    ["⏸ Pause Trading", "▶️ Resume Trading"],
-    ["📝 Trade Log", "🔍 Diagnose"],
-    ["🔄 WebSocket Status", "⚡ Check Momentum"],
-    ["📊 Trading Status", "⚡ Fast Check"],
-    ["🔧 API Test", "📈 Status"]
+    ["� Portfolio", "💼 Positions"],           # Clear financial info
+    ["⏸ Pause Trading", "▶️ Resume Trading"],   # Trading control  
+    ["📝 Trade Log", "🔍 Diagnostics"],        # History & enhanced diagnostics
+    ["🔄 Connection", "⚡ Quick Check"],        # WebSocket + fast momentum
+    ["🔧 API Test", "📈 Overview"],             # Technical test + complete status
 ]
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
